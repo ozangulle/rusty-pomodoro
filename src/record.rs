@@ -8,7 +8,7 @@ impl Record {
         Record {}
     }
 
-    fn process(&self, p: &Pomodoro) {
+    fn process(&self, _p: &Pomodoro) {
         // No implementation yet
     }
 }

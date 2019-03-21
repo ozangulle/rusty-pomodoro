@@ -11,6 +11,7 @@ impl CLI {
     }
 
     pub fn start(&self, p: &Pomodoro) {
+        print!("\x07");
         println!("You have finished {} pomodoros today", p.finished_pomodoros());
         let next_state = p.next_state();
         if next_state == PomodoroStates::Pomodoro {

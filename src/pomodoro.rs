@@ -16,7 +16,8 @@ pub struct Pomodoro<'a> {
     short_break_time_in_secs: u64,
     long_break_time_in_secs: u64,
     next_state: PomodoroStates,
-    observers: Vec<&'a Observer>
+    observers: Vec<&'a Observer>,
+    max_pomodoros: u32,
 }
 
 impl<'a> Pomodoro<'a> {
@@ -28,12 +29,13 @@ impl<'a> Pomodoro<'a> {
             short_break_time_in_secs: 5 * 60,
             long_break_time_in_secs: 15 * 60,
             next_state: PomodoroStates::Pomodoro,
-            observers: Vec::new()
+            observers: Vec::new(),
+            max_pomodoros: 0,
         }
     }
 
     pub fn proceed(&mut self) {
-        loop {
+        while self.max_pomodoros == 0 || self.finished_pomodoros < self.max_pomodoros {
             self.notify();
             match self.next_state {
                 PomodoroStates::Pomodoro => {
@@ -42,18 +44,18 @@ impl<'a> Pomodoro<'a> {
                     } else {
                         self.next_state = PomodoroStates::ShortBreak;
                     }
-                    self.start_pomodoro();
+                    self.wait_for_seconds(self.pomodoro_time_in_secs);
                     self.finished_pomodoros += 1;
                 },
                 PomodoroStates::ShortBreak => {
                     self.next_state = PomodoroStates::Pomodoro;
                     self.no_of_breaks = self.no_of_breaks + 1;
-                    self.start_short_break();
+                    self.wait_for_seconds(self.short_break_time_in_secs);
                 },
                 PomodoroStates::LongBreak => {
                     self.next_state = PomodoroStates::Pomodoro;
                     self.no_of_breaks = 0;
-                    self.start_long_break();
+                    self.wait_for_seconds(self.long_break_time_in_secs);
                 }
             }
         }
@@ -71,34 +73,13 @@ impl<'a> Pomodoro<'a> {
         self.observers.push(observer);
     }
     
-    fn start_pomodoro(&self) {
-        thread::sleep(Duration::from_secs(self.pomodoro_time_in_secs));
-    }
-
-    fn start_short_break(&self) {
-        thread::sleep(Duration::from_secs(self.short_break_time_in_secs));
-    }
-
-    fn start_long_break(&self) {
-        thread::sleep(Duration::from_secs(self.long_break_time_in_secs));
+    fn wait_for_seconds(&self, seconds: u64) {
+        thread::sleep(Duration::from_secs(seconds));
     }
  
     fn notify(&self) {
-        let p = self.clone();
         for observer in self.observers.iter() {
-            observer.callback(&p);
-        }
-    }
-
-    fn clone(&self) -> Pomodoro {
-        Pomodoro {
-            finished_pomodoros: self.finished_pomodoros,
-            no_of_breaks: self.no_of_breaks,
-            pomodoro_time_in_secs: self.pomodoro_time_in_secs,
-            short_break_time_in_secs: self.short_break_time_in_secs,
-            long_break_time_in_secs: self.long_break_time_in_secs,
-            next_state: self.next_state.clone(),
-            observers: Vec::new()
+            observer.callback(&self);
         }
     }
 }
@@ -116,6 +97,8 @@ mod tests {
             short_break_time_in_secs: 0,
             long_break_time_in_secs: 0,
             next_state: PomodoroStates::Pomodoro,
+            observers: Vec::new(),
+            max_pomodoros: 1,
         };
         pom.proceed();
         assert!(pom.next_state() == PomodoroStates::ShortBreak);
@@ -131,20 +114,9 @@ mod tests {
             short_break_time_in_secs: 0,
             long_break_time_in_secs: 0,
             next_state: PomodoroStates::Pomodoro,
+            observers: Vec::new(),
+            max_pomodoros: 4,
         };
-        // Pomodoro
-        pom.proceed();
-        // Short break
-        pom.proceed();
-        // Pomodoro
-        pom.proceed();
-        // Short break
-        pom.proceed();
-        // Pomodoro
-        pom.proceed();
-        // Short break
-        pom.proceed();
-        // Pomodoro
         pom.proceed();
         assert!(pom.next_state() == PomodoroStates::LongBreak);
         assert_eq!(pom.finished_pomodoros(), "4");
