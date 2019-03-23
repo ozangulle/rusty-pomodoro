@@ -6,18 +6,19 @@ First of all, it is a great opportunity to learn and practice Rust. Furthermore,
 
 ## Current Features
 
-There is only one feature available right now:
+Current available features:
 
 - Follow the pomodoro cycle using the cli.
+- The app logs your pomodoro process day by day in a csv file.
+- The app picks up the number of pomodoros from where you left if you run the app multiple times on a given day.
 
 ## Upcoming/Desired Features
 
-- Logging the pomodoro process day by day in a file.
 - Some kind of graphical interface at some point.
 
 ## How to use
 
-There are no releases or binaries yet. You can get the source code and run `cargo run` or `rustc` in order to build the application.
+There are no releases or binaries yet. You can get the source code and run `cargo build` and `cargo run` in order to build and run the application respectively.
 
 ## License
 
