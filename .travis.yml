@@ -20,6 +20,7 @@ matrix:
       - NAME=rusty-pomodoro 
       - TARGET=x86_64-pc-windows-msvc
       - PACKAGE=$NAME-x86_64-pc-windows-msvc.tar.gz
+      os: windows
 
 before_install:
   - set -e
