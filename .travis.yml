@@ -36,6 +36,8 @@ deploy:
   provider: releases
   file: ${PACKAGE}
   skip_cleanup: true
+  api_key:
+    secure: ${GHKEY}
   on:
     tags: true
   repo: ozangulle/rusty-pomodoro
