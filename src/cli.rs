@@ -13,12 +13,12 @@ impl CLI {
     pub fn start(&self, p: &Pomodoro) {
         print!("\x07");
         println!("You have finished {} pomodoros today", p.finished_pomodoros());
-        let next_state = p.next_state();
-        if next_state == PomodoroStates::Pomodoro {
+        let next_state = &p.next_state;
+        if *next_state == PomodoroStates::Pomodoro {
             print!("Starting a new pomodoro. ");
-        } else if next_state == PomodoroStates::ShortBreak {
+        } else if *next_state == PomodoroStates::ShortBreak {
             print!("Let's have a short break. ")
-        } else if next_state == PomodoroStates::LongBreak {
+        } else if *next_state == PomodoroStates::LongBreak {
             print!("Let's have a long break. ")
         }
         self.pause();

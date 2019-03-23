@@ -10,12 +10,12 @@ pub enum PomodoroStates {
 }
 
 pub struct Pomodoro<'a> {
-    finished_pomodoros: u32,
+    pub finished_pomodoros: u32,
     no_of_breaks: u8,
     pomodoro_time_in_secs: u64,
     short_break_time_in_secs: u64,
     long_break_time_in_secs: u64,
-    next_state: PomodoroStates,
+    pub next_state: PomodoroStates,
     observers: Vec<&'a Observer>,
     max_pomodoros: u32,
 }
@@ -25,9 +25,22 @@ impl<'a> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: 25 * 60,
-            short_break_time_in_secs: 5 * 60,
-            long_break_time_in_secs: 15 * 60,
+            pomodoro_time_in_secs: 1,//25 * 60,
+            short_break_time_in_secs: 1,//5 * 60,
+            long_break_time_in_secs: 1,//15 * 60,
+            next_state: PomodoroStates::Pomodoro,
+            observers: Vec::new(),
+            max_pomodoros: 0,
+        }
+    }
+
+    pub fn continue_from(no_of_pomodoros: u32) -> Pomodoro<'a> {
+        Pomodoro {
+            finished_pomodoros: no_of_pomodoros,
+            no_of_breaks: 0,
+            pomodoro_time_in_secs: 1,//25 * 60,
+            short_break_time_in_secs: 1,//5 * 60,
+            long_break_time_in_secs: 1,//15 * 60,
             next_state: PomodoroStates::Pomodoro,
             observers: Vec::new(),
             max_pomodoros: 0,
@@ -61,12 +74,8 @@ impl<'a> Pomodoro<'a> {
         }
     }
 
-    pub fn next_state(&self) -> PomodoroStates {
-        return self.next_state.clone();
-    }
-
     pub fn finished_pomodoros(&self) -> String {
-        return self.finished_pomodoros.to_string();
+        self.finished_pomodoros.to_string()
     }
 
     pub fn add_observer(&mut self, observer: &'a impl Observer) {
