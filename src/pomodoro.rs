@@ -25,9 +25,9 @@ impl<'a> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: 1,//25 * 60,
-            short_break_time_in_secs: 1,//5 * 60,
-            long_break_time_in_secs: 1,//15 * 60,
+            pomodoro_time_in_secs: 25 * 60,
+            short_break_time_in_secs: 5 * 60,
+            long_break_time_in_secs: 15 * 60,
             next_state: PomodoroStates::Pomodoro,
             observers: Vec::new(),
             max_pomodoros: 0,
@@ -37,13 +37,7 @@ impl<'a> Pomodoro<'a> {
     pub fn continue_from(no_of_pomodoros: u32) -> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: no_of_pomodoros,
-            no_of_breaks: 0,
-            pomodoro_time_in_secs: 1,//25 * 60,
-            short_break_time_in_secs: 1,//5 * 60,
-            long_break_time_in_secs: 1,//15 * 60,
-            next_state: PomodoroStates::Pomodoro,
-            observers: Vec::new(),
-            max_pomodoros: 0,
+            ..Pomodoro::new()
         }
     }
 
@@ -110,7 +104,7 @@ mod tests {
             max_pomodoros: 1,
         };
         pom.proceed();
-        assert!(pom.next_state() == PomodoroStates::ShortBreak);
+        assert!(pom.next_state == PomodoroStates::ShortBreak);
         assert_eq!(pom.finished_pomodoros(), "1");
     }
 
@@ -127,7 +121,13 @@ mod tests {
             max_pomodoros: 4,
         };
         pom.proceed();
-        assert!(pom.next_state() == PomodoroStates::LongBreak);
-        assert_eq!(pom.finished_pomodoros(), "4");
+        assert!(pom.next_state == PomodoroStates::LongBreak);
+        assert!(pom.finished_pomodoros == 4);
+    }
+
+    #[test]
+    fn continue_from_existing_record() {
+        let mut pom = Pomodoro::continue_from(12);
+        assert!(pom.finished_pomodoros == 12);
     }
 }

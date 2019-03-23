@@ -1,7 +1,8 @@
-use std::io::{stdin,stdout,Write};
 use crate::Pomodoro;
 use crate::PomodoroStates;
 use crate::Observer;
+
+use std::io::{stdin,stdout,Write};
 
 pub struct CLI {}
 

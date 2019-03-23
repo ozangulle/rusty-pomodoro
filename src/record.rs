@@ -1,15 +1,10 @@
-extern crate csv;
-extern crate chrono;
-use std::fs::OpenOptions;
 use crate::Observer;
 use crate::Pomodoro;
-use std::io::{BufRead, BufReader,Write,Read};
-use std::fs::File;
+use std::io::{BufRead, BufReader, Write};
+use std::fs::{File, OpenOptions};
 use std::error::Error;
 use csv::{Writer};
-use std::time::{SystemTime};
 use chrono::prelude::*;
-use chrono::format::DelayedFormat;
 
 pub struct Record {
     filename: String,
@@ -118,7 +113,7 @@ impl Record {
 
     fn overwrite_record(&self, position: usize, no_of_pomodoros: &u32) {
         let mut record_file = Vec::new();
-        let mut read_file = File::open(&self.filename).expect("Could not open file.");
+        let read_file = File::open(&self.filename).expect("Could not open file.");
         let reader = BufReader::new(read_file);
         for (index, line) in reader.lines().enumerate() {
             let line = line.unwrap();
