@@ -13,14 +13,14 @@ matrix:
     - env: 
       - NAME=rusty-pomodoro
       - TARGET=x86_64-apple-darwin
-      - PACKAGE=$NAME-x86_64-apple-darwin.tar.gz
+      - PACKAGE=${NAME}-${TARGET}.tar.gz
       os: osx
     # Windows
     - env:
       - NAME=rusty-pomodoro 
-      - TARGET=x86_64-pc-windows-msvc
-      - PACKAGE=$NAME-x86_64-pc-windows-msvc.tar.gz
-      os: windows
+      - TARGET=x86_64-pc-windows-gnu
+      - PACKAGE=${NAME}-${TARGET}.tar.gz
+      os: ubuntu
 
 before_install:
   - set -e
@@ -39,5 +39,5 @@ deploy:
   api_key:
     secure: GHKEY
   on:
-    # tags: true
+    tags: true
     repo: ozangulle/rusty-pomodoro
