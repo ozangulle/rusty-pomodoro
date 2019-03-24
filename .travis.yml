@@ -25,7 +25,6 @@ matrix:
 before_install:
   - set -e
   - rustup self update
-  - rustup install stable-gnu
   - rustup target add $TARGET
 
 before_deploy:
