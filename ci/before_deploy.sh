@@ -1,5 +1,8 @@
 #!/bin/bash
-
+if [ "$TARGET" == "x86_64-pc-windows-gnu" ]
+then
+    FILENAME=$NAME.exe
+fi
 # Install Rust stdlib for the target
 # rustup target add $TARGET
 
@@ -7,4 +10,4 @@
 cargo build --target=$TARGET --release
 
 # Package the release binary
-tar -czf $PACKAGE -C target/$TARGET/release/ $NAME
+tar -C target/$TARGET/release -czf $PACKAGE $FILENAME
