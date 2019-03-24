@@ -10,11 +10,11 @@ global:
 matrix:
   include:
     # OSX
-    - env: 
-      - NAME=rusty-pomodoro
-      - TARGET=x86_64-apple-darwin
-      - PACKAGE=${NAME}-${TARGET}.tar.gz
-      os: osx
+    # - env: 
+    #  - NAME=rusty-pomodoro
+    #  - TARGET=x86_64-apple-darwin
+    #  - PACKAGE=${NAME}-${TARGET}.tar.gz
+    #  os: osx
     # Windows
     - env:
       - NAME=rusty-pomodoro 
@@ -25,6 +25,8 @@ matrix:
 before_install:
   - set -e
   - rustup self update
+  - rustup install stable-gnu
+  - rustup target add $TARGET
 
 before_deploy:
   ci/before_deploy.sh
@@ -38,3 +40,12 @@ deploy:
   on:
     tags: true
     repo: ozangulle/rusty-pomodoro
+  
+cache: cargo
+before_cache:
+  # Travis can't cache files that are not readable by "others"
+  - chmod -R a+r $HOME/.cargo
+
+notifications:
+  email:
+    on_success: never
