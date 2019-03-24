@@ -10,11 +10,11 @@ global:
 matrix:
   include:
     # OSX
-    # - env: 
-    #  - NAME=rusty-pomodoro
-    #  - TARGET=x86_64-apple-darwin
-    #  - PACKAGE=${NAME}-${TARGET}.tar.gz
-    #  os: osx
+    - env: 
+      - NAME=rusty-pomodoro
+      - TARGET=x86_64-apple-darwin
+      - PACKAGE=${NAME}-${TARGET}.tar.gz
+      os: osx
     # Windows
     - env:
       - NAME=rusty-pomodoro 
@@ -32,15 +32,15 @@ before_install:
 before_deploy:
   ci/before_deploy.sh
 
-deploy:
-  provider: releases
-  file: $PACKAGE
-  skip_cleanup: true
-  api_key:
-    secure: $GHKEY
-  on:
-    tags: true
-    repo: ozangulle/rusty-pomodoro
+#deploy:
+#  provider: releases
+#  file: $PACKAGE
+#  skip_cleanup: true
+#  api_key:
+#    secure: $GHKEY
+#  on:
+#    tags: true
+#    repo: ozangulle/rusty-pomodoro
   
 cache: cargo
 before_cache:

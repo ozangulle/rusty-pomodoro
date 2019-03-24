@@ -1,4 +1,4 @@
-# Rusty Pomodoro
+# Rusty Pomodoro [![Build Status](https://travis-ci.org/ozangulle/rusty-pomodoro.svg?branch=master)](https://travis-ci.org/ozangulle/rusty-pomodoro)
 
 ## Why another pomodoro app
 
@@ -18,7 +18,7 @@ Current available features:
 
 ## How to use
 
-There are no releases or binaries yet. You can get the source code and run `cargo build` and `cargo run` in order to build and run the application respectively.
+Simply get the binary for your system from "releases" and run it. rusty-pomodoro is currently a cli tool, so it will open the terminal to run.
 
 ## License
 
