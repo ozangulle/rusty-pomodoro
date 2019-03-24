@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ "$TARGET" == "stable-x86_64-pc-windows-msvc" ]
+if [ "$TARGET" == "x86_64-pc-windows-msvc" ]
 then
     FILENAME=$NAME.exe
 fi

@@ -18,7 +18,7 @@ matrix:
     # Windows
     - env:
       - NAME=rusty-pomodoro 
-      - TARGET=stable-x86_64-pc-windows-msvc
+      - TARGET=x86_64-pc-windows-msvc
       - PACKAGE=${NAME}-${TARGET}.tar.gz
       os: ubuntu
 
