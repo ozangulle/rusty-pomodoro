@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install Rust stdlib for the target
-rustup target add $TARGET
+# rustup target add $TARGET
 
 # Compile the binary for the target
 cargo build --target=$TARGET --release
