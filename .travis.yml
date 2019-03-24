@@ -24,6 +24,7 @@ matrix:
 
 before_install:
   - set -e
+  - apt-get install -y gcc-multilib
   - rustup self update
   - rustup install stable-gnu
   - rustup target add $TARGET
