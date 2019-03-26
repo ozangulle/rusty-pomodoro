@@ -9,7 +9,7 @@ use observer::Observer;
 use record::Record;
 
 fn main() {
-    let _record = Record::new();
+    let _record = Record::new("pom-record.csv");
     let mut _pomodoro: Pomodoro;
     match _record.no_of_finished_pomodoros_from_record() {
         Some(no) => _pomodoro = Pomodoro::continue_from(no),

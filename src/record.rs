@@ -11,9 +11,9 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn new() -> Record {
+    pub fn new(filename: &str) -> Record {
         Record {
-            filename: "pom-record.csv".to_string(),
+            filename: filename.to_string(),
             current_date: Utc::now().format("%Y-%m-%d").to_string(),
         }
     }
@@ -130,6 +130,81 @@ impl Observer for Record {
     fn callback(&self, p: &Pomodoro) {
         if p.finished_pomodoros > 0 {
             self.process(p);
+        }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    extern crate remove_dir_all;
+    use remove_dir_all::*;
+    use std::fs::{File, DirBuilder};
+    use std::io::{BufRead, BufReader};
+    use crate::record::Record;
+    use crate::pomodoro::*;
+    use crate::observer::Observer;
+    use std::thread;
+    use std::time::Duration;
+
+    static record_name: &str = "./temp/record.csv";
+    
+    fn setup() {
+        DirBuilder::new().create("./temp").unwrap();
+    }
+
+    fn clean_up() {
+        remove_dir_all("./temp").unwrap();
+        thread::sleep(Duration::from_millis(500));
+    }
+
+    fn get_last_entry_and_line_no() -> Option<(String, u8)> {
+        let file = File::open(record_name);
+        match file {
+            Ok(file) => {
+                let mut line_position: u8 = 0;
+                let mut last_line: String = String::new();
+                for line in BufReader::new(file).lines() {
+                    if line.is_ok() {
+                        last_line = line.unwrap();
+                        line_position += 1;
+                    }
+                }
+                if line_position > 0 {
+                    return Some((last_line.clone(), line_position));
+                }
+                return None;
+            },
+            Err(_) => return None,
+        }
+    }
+
+    // #[test]
+    fn creates_a_record_file_if_none_exists() {
+        setup();
+        let mut record = Record::new(record_name);
+        record.initialize();
+        let file = File::open(record_name.to_string());
+        assert!(file.is_ok());
+        clean_up();
+    }
+
+    #[test]
+    fn calling_callback_with_pomodoro_records_the_state() {
+        setup();
+        let record = Record::new(record_name);
+        record.initialize();
+        let pom = Pomodoro::continue_from(10);
+        record.callback(&pom);
+        match get_last_entry_and_line_no() {
+            Some((last_line, line_no)) => {
+                assert!(line_no == 2);
+                clean_up();
+            },
+            None => {
+                panic!("Something went wrong");
+                clean_up();
+            },
         }
     }
 }

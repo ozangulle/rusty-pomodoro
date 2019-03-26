@@ -1,4 +1,5 @@
 /target
+/temp
 **/*.rs.bk
 pom-record.csv
 *.tar.gz
