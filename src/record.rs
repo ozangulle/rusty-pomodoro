@@ -1,7 +1,7 @@
 use crate::Observer;
 use crate::Pomodoro;
 use std::io::{BufRead, BufReader, Write};
-use std::fs::File;
+use std::fs::{File,OpenOptions};
 use std::error::Error;
 use chrono::prelude::*;
 
@@ -53,7 +53,7 @@ impl Record {
             Err(_) => {
                 let created = self.create_record_file();
                 match created {
-                    Ok(_) => println!("{} {}", "Created record file", &self.filename),
+                    Ok(_) => println!("{} {}", "Created record file:", &self.filename),
                     Err(_) => println!("Could not create the record file."),
                 }
             },
@@ -61,7 +61,7 @@ impl Record {
     }
 
     fn create_record_file(&self) -> Result<(), Box<Error>> {
-        self.write_to_record_file(&"Date", &"Number of Pomodoros")?;
+        self.write_to_record_file(&"Date",&"Number of Pomodoros")?;
         Ok(())
     }
 
@@ -115,13 +115,16 @@ impl Record {
         record_file[position - 1] = format!("{},{}", &self.current_date, no_of_pomodoros.to_string());
         let mut write_file = File::create(&self.filename).expect("Could not open file.");
         for entry in &record_file {                                                                                                                                                                  
-            write!(write_file, "{}\n", entry).expect("Could not write entry to file.");                                                                                                                            
+            writeln!(write_file, "{}", entry).expect("Could not write entry to file.");                                                                                                                            
         }  
     }
 
     fn write_to_record_file(&self, date: &str, no: &str) -> Result<(), Box<Error>> {
-        let mut write_file = File::create(&self.filename)?;
-        write!(write_file, "{}, {}", date, no)?;
+        let mut write_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&self.filename)?;
+        writeln!(write_file, "{},{}", date, no)?;
         Ok(())
     }
 }
@@ -146,6 +149,7 @@ mod tests {
     use crate::observer::Observer;
     use std::thread;
     use std::time::Duration;
+    use serial_test_derive::serial;
 
     static record_name: &str = "./temp/record.csv";
     
@@ -179,7 +183,8 @@ mod tests {
         }
     }
 
-    // #[test]
+    #[test]
+    #[serial]
     fn creates_a_record_file_if_none_exists() {
         setup();
         let mut record = Record::new(record_name);
@@ -190,6 +195,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn calling_callback_with_pomodoro_records_the_state() {
         setup();
         let record = Record::new(record_name);
