@@ -2,6 +2,7 @@ mod pomodoro;
 mod cli;
 mod observer;
 mod record;
+mod file;
 use pomodoro::Pomodoro;
 use pomodoro::PomodoroStates;
 use cli::CLI;
