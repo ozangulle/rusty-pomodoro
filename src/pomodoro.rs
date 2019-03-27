@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn continue_from_existing_record() {
-        let mut pom = Pomodoro::continue_from(12);
+        let pom = Pomodoro::continue_from(12);
         assert!(pom.finished_pomodoros == 12);
     }
 }
