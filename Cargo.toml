@@ -1,6 +1,6 @@
 [package]
 name = "rusty-pomodoro"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ozan Gulle <ozangulle@gmail.com>"]
 edition = "2018"
 
@@ -8,5 +8,5 @@ edition = "2018"
 chrono = "0.4.6"
 [dev-dependencies]
 remove_dir_all = "0.5.1"
-serial_test = "0.1"
-serial_test_derive = "0.1"
+serial_test = "0.2"
+serial_test_derive = "0.2"
