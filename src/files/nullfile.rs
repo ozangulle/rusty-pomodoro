@@ -1,4 +1,4 @@
-use crate::filetrait::RecordFile;
+use crate::files::recordfile::RecordFile;
 use std::error::Error;
 
 pub struct NullFile {

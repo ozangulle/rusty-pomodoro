@@ -1,6 +1,6 @@
 use crate::observer::Observer;
 use crate::pomodoro::Pomodoro;
-use crate::filetrait::RecordFile;
+use crate::files::RecordFile;
 use chrono::prelude::*;
 use std::error::Error;
 
@@ -79,7 +79,7 @@ impl<'a> Observer for Record<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::nullfile::NullFile;
+    use crate::files::nullfile::NullFile;
     use crate::record::Record;
     use chrono::prelude::*;
 

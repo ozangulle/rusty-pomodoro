@@ -1,6 +1,6 @@
 use rusty_pomodoro::cli::CLI;
-use rusty_pomodoro::file::CsvFile;
 use rusty_pomodoro::record::Record;
+use rusty_pomodoro::files::*;
 use rusty_pomodoro::pomodoro::Pomodoro;
 
 fn main() {

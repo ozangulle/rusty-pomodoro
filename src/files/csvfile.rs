@@ -1,4 +1,4 @@
-use crate::filetrait::RecordFile;
+use crate::files::recordfile::RecordFile;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::{File,OpenOptions};
 use std::error::Error;
@@ -133,11 +133,10 @@ impl RecordFile for CsvFile {
 mod tests {
     extern crate remove_dir_all;
     use remove_dir_all::*;
-    use crate::filetrait::RecordFile;
     use std::fs::{File, DirBuilder};
     use std::io::{BufRead, BufReader};
-    use crate::record::Record;
-    use crate::file::CsvFile;
+    use crate::files::csvfile::CsvFile;
+    use crate::files::recordfile::RecordFile;
     use std::thread;
     use std::time::Duration;
     use serial_test_derive::serial;
