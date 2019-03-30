@@ -1,3 +1,4 @@
+use crate::files::recordfile::RecordFile;
 use std::io::{BufRead, BufReader, Write};
 use std::fs::{File,OpenOptions};
 use std::error::Error;
@@ -10,94 +11,6 @@ impl CsvFile {
     pub fn new(filename: String) -> CsvFile {
         CsvFile {
             filename: filename.to_string(),
-        }
-    }
-
-    pub fn open_or_create_with_headers(&self, headers: &Vec<String>) {
-        let record = File::open(&self.filename);
-        match record {
-            Ok(_) => println!("Record file found"),
-            Err(_) => {
-                let created = File::create(&self.filename);
-                self.write_headers(headers).expect("Headers could not be written");
-                match created {
-                    Ok(_) => println!("{} {}", "Created record file:", &self.filename),
-                    Err(_) => println!("Could not create the record file."),
-                }
-            },
-        }
-    }
-
-    pub fn write_headers(&self, headers: &Vec<String>) -> Result<(), Box<Error>> {
-        self.append_new_line(headers)
-    }
-
-    pub fn write_record_to_new_line(&self, record: &Vec<String>) -> Result<(), Box<Error>> {
-        self.append_new_line(record)
-    }
-
-    pub fn overwrite_record_in_pos_with(&self, pos: &usize, record: &Vec<String>)
-     -> Result<(), Box<Error>> {
-        let mut record_file = Vec::new();
-        let read_file = File::open(&self.filename).expect("Could not open file.");
-        let reader = BufReader::new(read_file);
-        for line in reader.lines() {
-            let line = line.unwrap();
-            record_file.push(line);
-        }
-        let write_string = self.create_csv_line_from_vec(record);
-        record_file[pos - 1] = format!("{}", write_string);
-        let mut write_file = File::create(&self.filename).expect("Could not open file.");
-        for entry in &record_file {                                                                                                                                                                  
-            writeln!(write_file, "{}", entry)?;                                                                                                                            
-        }  
-        Ok(())
-    }
-
-    pub fn get_last_pomodoro_count(&self) -> Option<u32> {
-        let file = File::open(&self.filename);
-        match file {
-            Ok(file) => {
-                let mut line_position: usize = 0;
-                let mut last_line = String::new();
-                for line in BufReader::new(file).lines() {
-                    if line.is_ok() {
-                        last_line = line.unwrap();
-                        line_position += 1;
-                    }
-                }
-                if line_position > 1 {
-                    let split_line: Vec<&str> = last_line.split(",").collect();
-                    let finished_pomodoros_string = split_line.last().unwrap();
-                    let finished_pomodoros_int = finished_pomodoros_string.parse::<u32>().unwrap();
-                    return Some(finished_pomodoros_int);
-                }
-                return None;
-            },
-            Err(_) => return None,
-        }
-    }
-
-    pub fn get_last_pomodoro_date_and_line_no(&self) -> Option<(String, usize)> {
-        let file = File::open(&self.filename);
-        match file {
-            Ok(file) => {
-                let mut line_position: usize = 0;
-                let mut last_line = String::new();
-                for line in BufReader::new(file).lines() {
-                    if line.is_ok() {
-                        last_line = line.unwrap();
-                        line_position += 1;
-                    }
-                }
-                if line_position > 1 {
-                    let split_line: Vec<&str> = last_line.split(",").collect();
-                    let last_pomodoro_date = split_line.first().clone().unwrap().to_string();
-                    return Some((last_pomodoro_date, line_position));
-                }
-                return None;
-            },
-            Err(_) => return None,
         }
     }
 
@@ -125,14 +38,105 @@ impl CsvFile {
     }
 }
 
+impl RecordFile for CsvFile {
+    fn open_or_create_with_headers(&self, headers: &Vec<String>) {
+        let record = File::open(&self.filename);
+        match record {
+            Ok(_) => println!("Record file found"),
+            Err(_) => {
+                let created = File::create(&self.filename);
+                self.write_headers(headers).expect("Headers could not be written");
+                match created {
+                    Ok(_) => println!("{} {}", "Created record file:", &self.filename),
+                    Err(_) => println!("Could not create the record file."),
+                }
+            },
+        }
+    }
+
+    fn write_headers(&self, headers: &Vec<String>) -> Result<(), Box<Error>> {
+        self.append_new_line(headers)
+    }
+
+    fn write_record_to_new_line(&self, record: &Vec<String>) -> Result<(), Box<Error>> {
+        self.append_new_line(record)
+    }
+
+    fn overwrite_record_in_pos_with(&self, pos: &usize, record: &Vec<String>)
+     -> Result<(), Box<Error>> {
+        let mut record_file = Vec::new();
+        let read_file = File::open(&self.filename).expect("Could not open file.");
+        let reader = BufReader::new(read_file);
+        for line in reader.lines() {
+            let line = line.unwrap();
+            record_file.push(line);
+        }
+        let write_string = self.create_csv_line_from_vec(record);
+        record_file[pos - 1] = format!("{}", write_string);
+        let mut write_file = File::create(&self.filename).expect("Could not open file.");
+        for entry in &record_file {                                                                                                                                                                  
+            writeln!(write_file, "{}", entry)?;                                                                                                                            
+        }  
+        Ok(())
+    }
+
+    fn get_last_pomodoro_count(&self) -> Option<u32> {
+        let file = File::open(&self.filename);
+        match file {
+            Ok(file) => {
+                let mut line_position: usize = 0;
+                let mut last_line = String::new();
+                for line in BufReader::new(file).lines() {
+                    if line.is_ok() {
+                        last_line = line.unwrap();
+                        line_position += 1;
+                    }
+                }
+                if line_position > 1 {
+                    let split_line: Vec<&str> = last_line.split(",").collect();
+                    let finished_pomodoros_string = split_line.last().unwrap();
+                    let finished_pomodoros_int = finished_pomodoros_string.parse::<u32>().unwrap();
+                    return Some(finished_pomodoros_int);
+                }
+                return None;
+            },
+            Err(_) => return None,
+        }
+    }
+
+    fn get_last_pomodoro_date_and_line_no(&self) -> Option<(String, usize)> {
+        let file = File::open(&self.filename);
+        match file {
+            Ok(file) => {
+                let mut line_position: usize = 0;
+                let mut last_line = String::new();
+                for line in BufReader::new(file).lines() {
+                    if line.is_ok() {
+                        last_line = line.unwrap();
+                        line_position += 1;
+                    }
+                }
+                if line_position > 1 {
+                    let split_line: Vec<&str> = last_line.split(",").collect();
+                    let last_pomodoro_date = split_line.first().clone().unwrap().to_string();
+                    return Some((last_pomodoro_date, line_position));
+                }
+                return None;
+            },
+            Err(_) => return None,
+        }
+    }
+} 
+
+
 #[cfg(test)]
 mod tests {
     extern crate remove_dir_all;
     use remove_dir_all::*;
     use std::fs::{File, DirBuilder};
     use std::io::{BufRead, BufReader};
-    use crate::record::Record;
-    use crate::file::CsvFile;
+    use crate::files::csvfile::CsvFile;
+    use crate::files::recordfile::RecordFile;
     use std::thread;
     use std::time::Duration;
     use serial_test_derive::serial;
@@ -272,6 +276,31 @@ mod tests {
             Some(no) => {
                 clean_up();
                 assert!(no == 2);
+            },
+            None => {
+                clean_up();
+                panic!();
+            }
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_get_last_pomodoro_date_and_line_no() {
+        setup();
+        let file = CsvFile::new(FILENAME.to_string());
+        let headers = header_vec();
+        file.write_headers(&headers).expect("Something went wrong");
+        let mut content = content_vec("2019-01-01", "1");
+        file.append_new_line(&content).expect("Something went wrong");
+        let pos: usize = 2;
+        content = content_vec("2019-01-01", "2");
+        file.overwrite_record_in_pos_with(&pos, &content).expect("Something went wrong");
+        match file.get_last_pomodoro_date_and_line_no() {
+            Some((last_date, line_no)) => {
+                clean_up();
+                assert!(line_no == 2);
+                assert_eq!(last_date, "2019-01-01");
             },
             None => {
                 clean_up();

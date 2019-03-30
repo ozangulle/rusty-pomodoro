@@ -1,14 +1,7 @@
-mod pomodoro;
-mod cli;
-mod observer;
-mod record;
-mod file;
-use pomodoro::Pomodoro;
-use pomodoro::PomodoroStates;
-use cli::CLI;
-use observer::Observer;
-use record::Record;
-use file::CsvFile;
+use rusty_pomodoro::cli::CLI;
+use rusty_pomodoro::record::Record;
+use rusty_pomodoro::files::*;
+use rusty_pomodoro::pomodoro::Pomodoro;
 
 fn main() {
     let _csv_file = CsvFile::new("pom-record.csv".to_string());

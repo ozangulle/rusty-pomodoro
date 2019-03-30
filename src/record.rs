@@ -1,16 +1,16 @@
-use crate::Observer;
-use crate::Pomodoro;
-use crate::CsvFile;
+use crate::observer::Observer;
+use crate::pomodoro::Pomodoro;
+use crate::files::RecordFile;
 use chrono::prelude::*;
 use std::error::Error;
 
 pub struct Record<'a> {
-    record_file: &'a CsvFile,
+    record_file: &'a RecordFile,
     current_date: String,
 }
 
 impl<'a> Record<'a> {
-    pub fn new(record_file: &'a CsvFile) -> Record<'a> {
+    pub fn new(record_file: &'a RecordFile) -> Record<'a> {
         Record {
             record_file,
             current_date: Utc::now().format("%Y-%m-%d").to_string(),
@@ -26,7 +26,16 @@ impl<'a> Record<'a> {
     }
 
     pub fn no_of_finished_pomodoros_from_record(&self) -> Option<u32> {
-        self.record_file.get_last_pomodoro_count()
+        match self.record_file.get_last_pomodoro_date_and_line_no() {
+            Some((last_date, line_no)) => {
+                if last_date == self.current_date {
+                    self.record_file.get_last_pomodoro_count()
+                } else {
+                    None
+                }
+            },
+            None => None,
+        }
     }
     
     fn process(&self, _p: &Pomodoro) {
@@ -64,5 +73,27 @@ impl<'a> Observer for Record<'a> {
         if p.finished_pomodoros > 0 {
             self.process(p);
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::files::nullfile::NullFile;
+    use crate::record::Record;
+    use chrono::prelude::*;
+
+    #[test]
+    fn test_last_pomodoro_not_from_today() {
+        let null_file = NullFile::new(true, String::from("1970-01-01"));
+        let record = Record::new(&null_file);
+        assert_eq!(record.no_of_finished_pomodoros_from_record(), None);
+    }
+
+    #[test]
+    fn test_last_pomodoro_from_today() {
+        let null_file = NullFile::new(true, Utc::now().format("%Y-%m-%d").to_string());
+        let record = Record::new(&null_file);
+        assert_eq!(record.no_of_finished_pomodoros_from_record(), Some(10));
     }
 }
