@@ -1,6 +1,6 @@
-use crate::Pomodoro;
-use crate::PomodoroStates;
-use crate::Observer;
+use crate::pomodoro::Pomodoro;
+use crate::pomodoro::PomodoroStates;
+use crate::observer::Observer;
 
 use std::io::{stdin,stdout,Write};
 
