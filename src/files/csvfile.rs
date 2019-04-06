@@ -58,11 +58,11 @@ impl RecordFile for CsvFile {
         self.append_new_line(headers)
     }
 
-    fn write_record_to_new_line(&self, record: &Vec<String>) -> Result<(), Box<Error>> {
-        self.append_new_line(record)
+    fn write_record_to_new_line(&self, record: Vec<String>) -> Result<(), Box<Error>> {
+        self.append_new_line(&record)
     }
 
-    fn overwrite_record_in_pos_with(&self, pos: &usize, record: &Vec<String>)
+    fn overwrite_record_in_pos_with(&self, pos: usize, record: Vec<String>)
      -> Result<(), Box<Error>> {
         let mut record_file = Vec::new();
         let read_file = File::open(&self.filename).expect("Could not open file.");
@@ -71,7 +71,7 @@ impl RecordFile for CsvFile {
             let line = line.unwrap();
             record_file.push(line);
         }
-        let write_string = self.create_csv_line_from_vec(record);
+        let write_string = self.create_csv_line_from_vec(&record);
         record_file[pos - 1] = format!("{}", write_string);
         let mut write_file = File::create(&self.filename).expect("Could not open file.");
         for entry in &record_file {                                                                                                                                                                  
@@ -246,7 +246,7 @@ mod tests {
         file.append_new_line(&content).expect("Something went wrong");
         let pos: usize = 2;
         content = content_vec("2019-01-01", "2");
-        file.overwrite_record_in_pos_with(&pos, &content).expect("Something went wrong");
+        file.overwrite_record_in_pos_with(pos, content).expect("Something went wrong");
         match get_last_entry_and_line_no() {
             Some((last_entry, line_no)) => {
                 clean_up();
@@ -271,7 +271,7 @@ mod tests {
         file.append_new_line(&content).expect("Something went wrong");
         let pos: usize = 2;
         content = content_vec("2019-01-01", "2");
-        file.overwrite_record_in_pos_with(&pos, &content).expect("Something went wrong");
+        file.overwrite_record_in_pos_with(pos, content).expect("Something went wrong");
         match file.get_last_pomodoro_count() {
             Some(no) => {
                 clean_up();
@@ -295,7 +295,7 @@ mod tests {
         file.append_new_line(&content).expect("Something went wrong");
         let pos: usize = 2;
         content = content_vec("2019-01-01", "2");
-        file.overwrite_record_in_pos_with(&pos, &content).expect("Something went wrong");
+        file.overwrite_record_in_pos_with(pos, content).expect("Something went wrong");
         match file.get_last_pomodoro_date_and_line_no() {
             Some((last_date, line_no)) => {
                 clean_up();
