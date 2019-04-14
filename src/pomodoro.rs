@@ -25,9 +25,9 @@ impl<'a> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: 2, //25 * 60,
-            short_break_time_in_secs: 2, //5 * 60,
-            long_break_time_in_secs: 2, //15 * 60,
+            pomodoro_time_in_secs: 25 * 60,
+            short_break_time_in_secs: 5 * 60,
+            long_break_time_in_secs: 15 * 60,
             next_state: PomodoroStates::Pomodoro,
             observers: Vec::new(),
             max_pomodoros: 0,
