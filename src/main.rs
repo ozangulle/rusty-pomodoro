@@ -2,10 +2,11 @@ use rusty_pomodoro::cli::CLI;
 use rusty_pomodoro::record::Record;
 use rusty_pomodoro::files::*;
 use rusty_pomodoro::pomodoro::Pomodoro;
+use std::sync::{Arc, Mutex};
 
 fn main() {
-    let _csv_file = CsvFile::new("pom-record.csv".to_string());
-    let _record = Record::new(&_csv_file);
+    let _csv_file = Arc::new(Mutex::new(CsvFile::new("pom-record.csv".to_string())));
+    let _record = Record::new(_csv_file);
     let mut _pomodoro: Pomodoro;
     match _record.no_of_finished_pomodoros_from_record() {
         Some(no) => _pomodoro = Pomodoro::continue_from(no),

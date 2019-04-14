@@ -3,16 +3,18 @@ use crate::pomodoro::Pomodoro;
 use crate::files::RecordFile;
 use chrono::prelude::*;
 use std::error::Error;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
-pub struct Record<'a> {
-    record_file: &'a RecordFile,
+pub struct Record {
+    record_file: Arc<Mutex<dyn RecordFile>>,
     current_date: String,
 }
 
-impl<'a> Record<'a> {
-    pub fn new(record_file: &'a RecordFile) -> Record<'a> {
+impl Record {
+    pub fn new(record_file: Arc<Mutex<dyn RecordFile>>) -> Record {
         Record {
-            record_file,
+            record_file: record_file,
             current_date: Utc::now().format("%Y-%m-%d").to_string(),
         }
     }
@@ -22,14 +24,15 @@ impl<'a> Record<'a> {
             &"Date".to_string(),
             &"Number of pomodoros".to_string(),
         );
-        self.record_file.open_or_create_with_headers(&headers);
+        self.record_file.lock().unwrap().open_or_create_with_headers(&headers);
     }
 
     pub fn no_of_finished_pomodoros_from_record(&self) -> Option<u32> {
-        match self.record_file.get_last_pomodoro_date_and_line_no() {
+        let locked_file = self.record_file.lock().unwrap(); 
+        match locked_file.get_last_pomodoro_date_and_line_no() {
             Some((last_date, line_no)) => {
                 if last_date == self.current_date {
-                    self.record_file.get_last_pomodoro_count()
+                    locked_file.get_last_pomodoro_count()
                 } else {
                     None
                 }
@@ -47,15 +50,20 @@ impl<'a> Record<'a> {
 
     fn write_record(&self, p: &Pomodoro) -> Result<(), Box<Error>> {
         let content_vec = self.construct_content_vec(&self.current_date, &p.finished_pomodoros.to_string());
-        match self.record_file.get_last_pomodoro_date_and_line_no() {
+        match self.record_file.lock().unwrap().get_last_pomodoro_date_and_line_no() {
             Some((last_date, line_pos)) => {
+                let record_file: Arc<Mutex<RecordFile>> = self.record_file.clone();
                 if last_date == self.current_date {
-                    self.record_file.overwrite_record_in_pos_with(&line_pos, &content_vec)?
+                    thread::spawn(move || {
+                        record_file.lock().unwrap().overwrite_record_in_pos_with(line_pos, content_vec).expect("error");
+                    });
                 } else {
-                    self.record_file.write_record_to_new_line(&content_vec)?
+                    thread::spawn(move || {
+                        record_file.lock().unwrap().write_record_to_new_line(content_vec).expect("error");
+                    });
                 }
             },
-            None => self.record_file.write_record_to_new_line(&content_vec)?
+            None => self.record_file.lock().unwrap().write_record_to_new_line(content_vec)?
         }
         Ok(())
     }
@@ -68,7 +76,7 @@ impl<'a> Record<'a> {
     }
 }
 
-impl<'a> Observer for Record<'a> {
+impl Observer for Record {
     fn callback(&self, p: &Pomodoro) {
         if p.finished_pomodoros > 0 {
             self.process(p);
@@ -81,19 +89,20 @@ impl<'a> Observer for Record<'a> {
 mod tests {
     use crate::files::nullfile::NullFile;
     use crate::record::Record;
+    use std::sync::{Arc, Mutex};
     use chrono::prelude::*;
 
     #[test]
     fn test_last_pomodoro_not_from_today() {
         let null_file = NullFile::new(true, String::from("1970-01-01"));
-        let record = Record::new(&null_file);
+        let record = Record::new(Arc::new(Mutex::new(null_file)));
         assert_eq!(record.no_of_finished_pomodoros_from_record(), None);
     }
 
     #[test]
     fn test_last_pomodoro_from_today() {
         let null_file = NullFile::new(true, Utc::now().format("%Y-%m-%d").to_string());
-        let record = Record::new(&null_file);
+        let record = Record::new(Arc::new(Mutex::new(null_file)));
         assert_eq!(record.no_of_finished_pomodoros_from_record(), Some(10));
     }
 }
