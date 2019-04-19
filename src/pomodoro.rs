@@ -6,7 +6,14 @@ use std::time::Duration;
 pub enum PomodoroStates {
     Pomodoro,
     ShortBreak,
-    LongBreak
+    LongBreak,
+}
+
+pub struct PomodoroConfig {
+    pub pomodoro_time_in_secs: u64,
+    pub short_break_time_in_secs: u64,
+    pub long_break_time_in_secs: u64,
+    pub max_pomodoros: u32,
 }
 
 pub struct Pomodoro<'a> {
@@ -21,23 +28,23 @@ pub struct Pomodoro<'a> {
 }
 
 impl<'a> Pomodoro<'a> {
-    pub fn new() -> Pomodoro<'a> {
+    pub fn new(config: PomodoroConfig) -> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: 25 * 60,
-            short_break_time_in_secs: 5 * 60,
-            long_break_time_in_secs: 15 * 60,
+            pomodoro_time_in_secs: config.pomodoro_time_in_secs,
+            short_break_time_in_secs: config.short_break_time_in_secs,
+            long_break_time_in_secs: config.long_break_time_in_secs,
             next_state: PomodoroStates::Pomodoro,
             observers: Vec::new(),
-            max_pomodoros: 0,
+            max_pomodoros: config.max_pomodoros,
         }
     }
 
-    pub fn continue_from(no_of_pomodoros: u32) -> Pomodoro<'a> {
+    pub fn continue_from(no_of_pomodoros: u32, config: PomodoroConfig) -> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: no_of_pomodoros,
-            ..Pomodoro::new()
+            ..Pomodoro::new(config)
         }
     }
 
@@ -89,20 +96,21 @@ impl<'a> Pomodoro<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::pomodoro::Pomodoro;
-    use crate::pomodoro::PomodoroStates;
-    #[test]
-    fn state_jumps_from_pomodoro_to_short_break() {
-        let mut pom = Pomodoro {
-            finished_pomodoros: 0,
-            no_of_breaks: 0,
+    use crate::pomodoro::*;
+
+    fn create_pomodoro_with_max_pomodoros(max_pomodoros: u32) -> Pomodoro<'static> {
+        let config = PomodoroConfig{
             pomodoro_time_in_secs: 0,
             short_break_time_in_secs: 0,
             long_break_time_in_secs: 0,
-            next_state: PomodoroStates::Pomodoro,
-            observers: Vec::new(),
-            max_pomodoros: 1,
+            max_pomodoros: max_pomodoros,
         };
+        Pomodoro::new(config)
+    }
+
+    #[test]
+    fn state_jumps_from_pomodoro_to_short_break() {
+        let mut pom = create_pomodoro_with_max_pomodoros(1);
         pom.proceed();
         assert!(pom.next_state == PomodoroStates::ShortBreak);
         assert_eq!(pom.finished_pomodoros(), "1");
@@ -110,16 +118,7 @@ mod tests {
 
     #[test]
     fn after_four_pomodoros_come_a_long_break() {
-        let mut pom = Pomodoro {
-            finished_pomodoros: 0,
-            no_of_breaks: 0,
-            pomodoro_time_in_secs: 0,
-            short_break_time_in_secs: 0,
-            long_break_time_in_secs: 0,
-            next_state: PomodoroStates::Pomodoro,
-            observers: Vec::new(),
-            max_pomodoros: 4,
-        };
+        let mut pom = create_pomodoro_with_max_pomodoros(4);
         pom.proceed();
         assert!(pom.next_state == PomodoroStates::LongBreak);
         assert!(pom.finished_pomodoros == 4);
@@ -127,7 +126,13 @@ mod tests {
 
     #[test]
     fn continue_from_existing_record() {
-        let pom = Pomodoro::continue_from(12);
+        let config = PomodoroConfig{
+            pomodoro_time_in_secs: 0,
+            short_break_time_in_secs: 0,
+            long_break_time_in_secs: 0,
+            max_pomodoros: 4,
+        };
+        let pom = Pomodoro::continue_from(12, config);
         assert!(pom.finished_pomodoros == 12);
     }
 }

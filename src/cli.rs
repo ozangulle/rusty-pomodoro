@@ -2,7 +2,10 @@ use crate::pomodoro::Pomodoro;
 use crate::pomodoro::PomodoroStates;
 use crate::observer::Observer;
 
+use std::thread;
+use std::time::Duration;
 use std::io::{stdin,stdout,Write};
+use std::sync::mpsc;
 
 pub struct CLI {}
 
@@ -23,6 +26,7 @@ impl CLI {
             print!("Let's have a long break. ")
         }
         self.pause();
+        self.play_animation();
     }
 
     fn pause(&self) {
@@ -30,6 +34,23 @@ impl CLI {
         print!("Please press enter...");
         let _=stdout().flush();
         stdin().read_line(&mut s);
+    }
+
+    fn play_animation(&self) {
+        thread::spawn(move || {
+            let mut frame: usize = 0;
+            let animation = vec!["|", "/", "-", "\\"];
+            while frame < 5 {
+                if frame == 4 {
+                    frame = 0;
+                }
+                thread::sleep(Duration::from_secs(1));
+                print!("\r");
+                print!("{}", animation[frame]);
+                stdout().flush();
+                frame = frame + 1;
+            }
+        });
     }
 }
 
