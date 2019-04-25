@@ -1,6 +1,6 @@
 pub mod pomodoro;
 pub mod cli;
-pub mod observer;
+pub mod observers;
 pub mod record;
 pub mod files;
 

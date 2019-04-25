@@ -1,6 +1,6 @@
 use crate::pomodoro::Pomodoro;
 use crate::pomodoro::PomodoroStates;
-use crate::observer::Observer;
+use crate::observers::{Observer, UpdateState};
 
 use std::thread;
 use std::time::Duration;
@@ -14,15 +14,14 @@ impl CLI {
         CLI {}
     }
 
-    pub fn start(&self, p: &Pomodoro) {
+    pub fn start(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
         print!("\x07");
-        println!("You have finished {} pomodoros today", p.finished_pomodoros());
-        let next_state = &p.next_state;
-        if *next_state == PomodoroStates::Pomodoro {
+        println!("You have finished {} pomodoros today", finished_pomodoros);
+        if next_state == PomodoroStates::Pomodoro {
             print!("Starting a new pomodoro. ");
-        } else if *next_state == PomodoroStates::ShortBreak {
+        } else if next_state == PomodoroStates::ShortBreak {
             print!("Let's have a short break. ")
-        } else if *next_state == PomodoroStates::LongBreak {
+        } else if next_state == PomodoroStates::LongBreak {
             print!("Let's have a long break. ")
         }
         self.pause();
@@ -55,7 +54,13 @@ impl CLI {
 }
 
 impl Observer for CLI {
-    fn callback(&self, p: &Pomodoro) {
-        self.start(p);
+    fn callback(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
+        self.start(next_state, finished_pomodoros);
+    }
+}
+
+impl UpdateState for CLI {
+    fn update_state(&self, state: PomodoroStates, remaining_secs: u64) {
+        print!(" Remaining seconds {}", remaining_secs);
     }
 }

@@ -23,5 +23,6 @@ fn main() {
     _record.initialize();
     _pomodoro.add_observer(&_record);
     _pomodoro.add_observer(&_cli);
+    _pomodoro.add_update_observer(&_cli);
     _pomodoro.proceed();
 }

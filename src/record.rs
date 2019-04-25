@@ -1,5 +1,6 @@
-use crate::observer::Observer;
+use crate::observers::Observer;
 use crate::pomodoro::Pomodoro;
+use crate::pomodoro::PomodoroStates;
 use crate::files::RecordFile;
 use chrono::prelude::*;
 use std::error::Error;
@@ -41,15 +42,15 @@ impl Record {
         }
     }
     
-    fn process(&self, _p: &Pomodoro) {
-        match self.write_record(_p) {
+    fn process(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
+        match self.write_record(finished_pomodoros) {
             Ok(()) => (),
             Err(_) => println!("Error: There was an error while writing to the record.")
         }
     }
 
-    fn write_record(&self, p: &Pomodoro) -> Result<(), Box<Error>> {
-        let content_vec = self.construct_content_vec(&self.current_date, &p.finished_pomodoros.to_string());
+    fn write_record(&self, finished_pomodoros: u32) -> Result<(), Box<Error>> {
+        let content_vec = self.construct_content_vec(&self.current_date, &finished_pomodoros.to_string());
         match self.record_file.lock().unwrap().get_last_pomodoro_date_and_line_no() {
             Some((last_date, line_pos)) => {
                 let record_file: Arc<Mutex<RecordFile>> = self.record_file.clone();
@@ -77,9 +78,9 @@ impl Record {
 }
 
 impl Observer for Record {
-    fn callback(&self, p: &Pomodoro) {
-        if p.finished_pomodoros > 0 {
-            self.process(p);
+    fn callback(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
+        if finished_pomodoros > 0 {
+            self.process(next_state, finished_pomodoros);
         }
     }
 }
