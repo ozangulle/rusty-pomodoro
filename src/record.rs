@@ -1,5 +1,4 @@
 use crate::observers::Observer;
-use crate::pomodoro::Pomodoro;
 use crate::pomodoro::PomodoroStates;
 use crate::files::RecordFile;
 use chrono::prelude::*;
@@ -15,7 +14,7 @@ pub struct Record {
 impl Record {
     pub fn new(record_file: Arc<Mutex<dyn RecordFile>>) -> Record {
         Record {
-            record_file: record_file,
+            record_file,
             current_date: Utc::now().format("%Y-%m-%d").to_string(),
         }
     }
@@ -64,7 +63,12 @@ impl Record {
                     });
                 }
             },
-            None => self.record_file.lock().unwrap().write_record_to_new_line(content_vec)?
+            None => {
+                let record_file: Arc<Mutex<RecordFile>> = self.record_file.clone();
+                thread::spawn(move || {
+                    record_file.lock().unwrap().write_record_to_new_line(content_vec).expect("error");
+                });
+            }
         }
         Ok(())
     }

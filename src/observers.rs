@@ -1,4 +1,3 @@
-use crate::pomodoro::Pomodoro;
 use crate::pomodoro::PomodoroStates;
 
 pub trait Observer {

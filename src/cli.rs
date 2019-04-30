@@ -1,20 +1,31 @@
-use crate::pomodoro::Pomodoro;
 use crate::pomodoro::PomodoroStates;
-use crate::observers::{Observer, UpdateState};
+use crate::pomodoro::IOComponent;
+use crate::communication::*;
 
 use std::thread;
 use std::time::Duration;
 use std::io::{stdin,stdout,Write};
-use std::sync::mpsc;
+use std::sync::mpsc::{Sender, Receiver, channel};
 
-pub struct CLI {}
+pub struct CLI {
+    ui_sender: Option<Sender<UIChannel>>,
+    pom_receiver: Option<Receiver<PomodoroChannel>>
+}
 
 impl CLI {
     pub fn new() -> CLI {
-        CLI {}
+        CLI {
+            ui_sender: None,
+            pom_receiver: None,
+        }
     }
 
-    pub fn start(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
+    pub fn start(&self, no: u32) {
+        self.ask_for_ack(PomodoroStates::Pomodoro, no);
+    }
+
+    fn ask_for_ack(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
+        print!("{}[2J", 27 as char);
         print!("\x07");
         println!("You have finished {} pomodoros today", finished_pomodoros);
         if next_state == PomodoroStates::Pomodoro {
@@ -25,42 +36,68 @@ impl CLI {
             print!("Let's have a long break. ")
         }
         self.pause();
-        self.play_animation();
+        self.ui_sender.as_ref().unwrap().send(UIChannel::Proceed);
+        self.listening_loop();
     }
 
     fn pause(&self) {
         let mut s=String::new();
         print!("Please press enter...");
-        let _=stdout().flush();
+        let _ = stdout().flush();
         stdin().read_line(&mut s);
     }
 
-    fn play_animation(&self) {
-        thread::spawn(move || {
-            let mut frame: usize = 0;
-            let animation = vec!["|", "/", "-", "\\"];
-            while frame < 5 {
-                if frame == 4 {
-                    frame = 0;
-                }
-                thread::sleep(Duration::from_secs(1));
-                print!("\r");
-                print!("{}", animation[frame]);
-                stdout().flush();
-                frame = frame + 1;
+    fn play_animation(&self, remaining_secs: u64) {
+        let mut frame: usize = 0;
+        let animation = vec!["|", "/", "-", "\\", "."];
+        while frame < 5 {
+            print!("\r");
+            if remaining_secs > 60 {
+                let time_to_show = remaining_secs / 60;
+                print!("{} {} minutes remaining    ", animation[frame], time_to_show);
+            } else {
+                print!("{} {} seconds remaining    ", animation[frame], remaining_secs);
             }
-        });
+            stdout().flush();
+            thread::sleep(Duration::from_secs(1));
+            frame = frame + 1;
+        }
+        self.listening_loop();
+    }
+
+    fn listening_loop(&self) {
+        match self.pom_receiver.as_ref() {
+            Some(channel) => {
+                match channel.recv() {
+                    Ok(message) => {
+                        match message {
+                            PomodoroChannel::Update(
+                                remaining_secs
+                            ) => self.play_animation(remaining_secs),
+                            PomodoroChannel::Completed(
+                                next_state,
+                                finished_pomodoros
+                            ) => self.ask_for_ack(next_state, finished_pomodoros),
+                        }
+                    },
+                    Err(_) => println!("Channel disconnected"),
+                }
+            },
+            None => (),
+        }
     }
 }
 
-impl Observer for CLI {
-    fn callback(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
-        self.start(next_state, finished_pomodoros);
+impl ConcSender<UIChannel> for CLI {
+    fn chan_sender(&mut self) -> Receiver<UIChannel> {
+        let (sender, receiver) = channel();
+        self.ui_sender = Some(sender);
+        receiver
     }
 }
 
-impl UpdateState for CLI {
-    fn update_state(&self, state: PomodoroStates, remaining_secs: u64) {
-        print!(" Remaining seconds {}", remaining_secs);
+impl ConcReceiver<PomodoroChannel> for CLI {
+    fn register_receiver(&mut self, receiver: Receiver<PomodoroChannel>) {
+        self.pom_receiver = Some(receiver);
     }
 }
