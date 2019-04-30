@@ -1,8 +1,8 @@
-use crate::observers::*;
 use crate::communication::*;
+use crate::observers::*;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
-use std::sync::mpsc::{Sender, Receiver, channel};
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum PomodoroStates {
@@ -26,13 +26,16 @@ pub struct Pomodoro<'a> {
     pub next_state: PomodoroStates,
     pub current_state: PomodoroStates,
     pub state_observers: Vec<&'a Observer>,
-    pub update_observers: Vec<&'a UpdateState>,
     ui_receiver: Option<Receiver<UIChannel>>,
-    pom_sender: Option<Sender<PomodoroChannel>>
+    pom_sender: Option<Sender<PomodoroChannel>>,
 }
 
 pub trait IOComponent {
-    fn ask_to_continue(&self, next_state: PomodoroStates, finished_pomodoros: u32)-> (bool, Sender<bool>);
+    fn ask_to_continue(
+        &self,
+        next_state: PomodoroStates,
+        finished_pomodoros: u32,
+    ) -> (bool, Sender<bool>);
 }
 
 impl<'a> Pomodoro<'a> {
@@ -46,17 +49,32 @@ impl<'a> Pomodoro<'a> {
             current_state: PomodoroStates::Pomodoro,
             next_state: PomodoroStates::Pomodoro,
             state_observers: Vec::new(),
-            update_observers: Vec::new(),
             ui_receiver: None,
             pom_sender: None,
         }
     }
 
-    pub fn continue_from(no_of_pomodoros: u32, config: PomodoroConfig)
-        -> Pomodoro<'a> {
+    pub fn continue_from(no_of_pomodoros: u32, config: PomodoroConfig) -> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: no_of_pomodoros,
             ..Pomodoro::new(config)
+        }
+    }
+
+    pub fn add_observer(&mut self, observer: &'a impl Observer) {
+        self.state_observers.push(observer);
+    }
+
+    pub fn listen_loop(&mut self) {
+        match self.ui_receiver.as_ref() {
+            Some(channel) => match channel.recv() {
+                Ok(message) => match message {
+                    UIChannel::Proceed => self.run_pom_cycle(),
+                    UIChannel::Cancel => (),
+                },
+                Err(_) => (),
+            },
+            None => (),
         }
     }
 
@@ -71,13 +89,13 @@ impl<'a> Pomodoro<'a> {
                 self.current_state = PomodoroStates::Pomodoro;
                 self.wait_for_seconds(self.pomodoro_time_in_secs);
                 self.finished_pomodoros += 1;
-            },
+            }
             PomodoroStates::ShortBreak => {
                 self.next_state = PomodoroStates::Pomodoro;
                 self.current_state = PomodoroStates::ShortBreak;
                 self.no_of_breaks = self.no_of_breaks + 1;
                 self.wait_for_seconds(self.short_break_time_in_secs);
-            },
+            }
             PomodoroStates::LongBreak => {
                 self.next_state = PomodoroStates::Pomodoro;
                 self.current_state = PomodoroStates::LongBreak;
@@ -88,19 +106,14 @@ impl<'a> Pomodoro<'a> {
         self.notify();
         match self.pom_sender.as_ref() {
             Some(channel) => {
-                channel.send(PomodoroChannel::Completed(self.next_state.clone(), self.finished_pomodoros));
+                channel.send(PomodoroChannel::Completed(
+                    self.next_state.clone(),
+                    self.finished_pomodoros,
+                ));
                 self.listen_loop();
-            },
+            }
             None => (),
         }
-    }
-
-    pub fn add_observer(&mut self, observer: &'a impl Observer) {
-        self.state_observers.push(observer);
-    }
-
-    pub fn add_update_observer(&mut self, observer: &'a impl UpdateState) {
-        self.update_observers.push(observer);
     }
 
     fn wait_for_seconds(&self, seconds: u64) {
@@ -116,9 +129,9 @@ impl<'a> Pomodoro<'a> {
 
     fn send_update(&self, remaining_secs: u64) {
         match self.pom_sender.as_ref() {
-            Some(channel) =>  {
+            Some(channel) => {
                 channel.send(PomodoroChannel::Update(remaining_secs));
-            },
+            }
             None => (),
         }
     }
@@ -126,23 +139,6 @@ impl<'a> Pomodoro<'a> {
     fn notify(&self) {
         for observer in self.state_observers.iter() {
             observer.callback(self.next_state.clone(), self.finished_pomodoros);
-        }
-    }
-
-    pub fn listen_loop(&mut self) {
-        match self.ui_receiver.as_ref() {
-            Some(channel) => {
-                match channel.recv() {
-                    Ok(message) => {
-                        match message {
-                            UIChannel::Proceed => self.run_pom_cycle(),
-                            UIChannel::Cancel => (),
-                        }
-                    },
-                    Err(_) => (),
-                }
-            },
-            None => (),
         }
     }
 }
@@ -164,15 +160,15 @@ impl<'a> ConcReceiver<UIChannel> for Pomodoro<'a> {
 #[cfg(test)]
 mod tests {
     extern crate simulacrum;
+    use crate::observers::Observer;
+    use crate::communication::UIChannel;
     use crate::pomodoro::*;
-    use crate::observers::{Observer};
     #[macro_use]
     use simulacrum::*;
     use std::sync::mpsc::channel;
-    use std::sync::mpsc::{Sender, Receiver};
+    use std::sync::mpsc::{Receiver, Sender};
     use std::thread;
     use std::time::Duration;
-    use crate::communication::{UIChannel};
 
     create_mock! {
         impl IOComponent for MockIO (self) {
@@ -182,7 +178,7 @@ mod tests {
     }
 
     fn pom_config() -> PomodoroConfig {
-        PomodoroConfig{
+        PomodoroConfig {
             pomodoro_time_in_secs: 0,
             short_break_time_in_secs: 0,
             long_break_time_in_secs: 0,
@@ -256,7 +252,8 @@ mod tests {
             }
         }
         let mut observer = MockObserver::new();
-        observer.expect_callback()
+        observer
+            .expect_callback()
             .called_once()
             .with(params!(PomodoroStates::ShortBreak, 1));
         let pom_config = pom_config();

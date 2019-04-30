@@ -1,15 +1,15 @@
-use crate::pomodoro::PomodoroStates;
-use crate::pomodoro::IOComponent;
 use crate::communication::*;
+use crate::pomodoro::IOComponent;
+use crate::pomodoro::PomodoroStates;
 
+use std::io::{stdin, stdout, Write};
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
-use std::io::{stdin,stdout,Write};
-use std::sync::mpsc::{Sender, Receiver, channel};
 
 pub struct CLI {
     ui_sender: Option<Sender<UIChannel>>,
-    pom_receiver: Option<Receiver<PomodoroChannel>>
+    pom_receiver: Option<Receiver<PomodoroChannel>>,
 }
 
 impl CLI {
@@ -20,8 +20,8 @@ impl CLI {
         }
     }
 
-    pub fn start(&self, no: u32) {
-        self.ask_for_ack(PomodoroStates::Pomodoro, no);
+    pub fn start(&self, finished_pomodoros: u32) {
+        self.ask_for_ack(PomodoroStates::Pomodoro, finished_pomodoros);
     }
 
     fn ask_for_ack(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
@@ -41,7 +41,7 @@ impl CLI {
     }
 
     fn pause(&self) {
-        let mut s=String::new();
+        let mut s = String::new();
         print!("Please press enter...");
         let _ = stdout().flush();
         stdin().read_line(&mut s);
@@ -54,9 +54,15 @@ impl CLI {
             print!("\r");
             if remaining_secs > 60 {
                 let time_to_show = remaining_secs / 60;
-                print!("{} {} minutes remaining    ", animation[frame], time_to_show);
+                print!(
+                    "{} {} minutes remaining    ",
+                    animation[frame], time_to_show
+                );
             } else {
-                print!("{} {} seconds remaining    ", animation[frame], remaining_secs);
+                print!(
+                    "{} {} seconds remaining    ",
+                    animation[frame], remaining_secs
+                );
             }
             stdout().flush();
             thread::sleep(Duration::from_secs(1));
@@ -67,21 +73,14 @@ impl CLI {
 
     fn listening_loop(&self) {
         match self.pom_receiver.as_ref() {
-            Some(channel) => {
-                match channel.recv() {
-                    Ok(message) => {
-                        match message {
-                            PomodoroChannel::Update(
-                                remaining_secs
-                            ) => self.play_animation(remaining_secs),
-                            PomodoroChannel::Completed(
-                                next_state,
-                                finished_pomodoros
-                            ) => self.ask_for_ack(next_state, finished_pomodoros),
-                        }
-                    },
-                    Err(_) => println!("Channel disconnected"),
-                }
+            Some(channel) => match channel.recv() {
+                Ok(message) => match message {
+                    PomodoroChannel::Update(remaining_secs) => self.play_animation(remaining_secs),
+                    PomodoroChannel::Completed(next_state, finished_pomodoros) => {
+                        self.ask_for_ack(next_state, finished_pomodoros)
+                    }
+                },
+                Err(_) => (),
             },
             None => (),
         }

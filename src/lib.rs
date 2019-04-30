@@ -1,9 +1,9 @@
-pub mod pomodoro;
 pub mod cli;
-pub mod observers;
-pub mod record;
-pub mod files;
 pub mod communication;
+pub mod files;
+pub mod observers;
+pub mod pomodoro;
+pub mod record;
 
 extern crate chrono;
 extern crate math;

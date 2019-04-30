@@ -19,6 +19,7 @@ before_install:
   - set -e
   - rustup self update
   - rustup target add $TARGET
+  - cargo +nightly fmt --all -- --check
   - cargo test
 
 cache: cargo

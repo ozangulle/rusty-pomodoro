@@ -25,7 +25,11 @@ impl RecordFile for NullFile {
     fn write_record_to_new_line(&self, record: Vec<String>) -> Result<(), Box<Error>> {
         Ok(())
     }
-    fn overwrite_record_in_pos_with(&self, pos: usize, record: Vec<String>) -> Result<(), Box<Error>> {
+    fn overwrite_record_in_pos_with(
+        &self,
+        pos: usize,
+        record: Vec<String>,
+    ) -> Result<(), Box<Error>> {
         Ok(())
     }
     fn get_last_pomodoro_count(&self) -> Option<u32> {

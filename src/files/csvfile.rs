@@ -1,7 +1,7 @@
 use crate::files::recordfile::RecordFile;
-use std::io::{BufRead, BufReader, Write};
-use std::fs::{File,OpenOptions};
 use std::error::Error;
+use std::fs::{File, OpenOptions};
+use std::io::{BufRead, BufReader, Write};
 
 pub struct CsvFile {
     filename: String,
@@ -45,12 +45,13 @@ impl RecordFile for CsvFile {
             Ok(_) => println!("Record file found"),
             Err(_) => {
                 let created = File::create(&self.filename);
-                self.write_headers(headers).expect("Headers could not be written");
+                self.write_headers(headers)
+                    .expect("Headers could not be written");
                 match created {
                     Ok(_) => println!("{} {}", "Created record file:", &self.filename),
                     Err(_) => println!("Could not create the record file."),
                 }
-            },
+            }
         }
     }
 
@@ -62,8 +63,11 @@ impl RecordFile for CsvFile {
         self.append_new_line(&record)
     }
 
-    fn overwrite_record_in_pos_with(&self, pos: usize, record: Vec<String>)
-     -> Result<(), Box<Error>> {
+    fn overwrite_record_in_pos_with(
+        &self,
+        pos: usize,
+        record: Vec<String>,
+    ) -> Result<(), Box<Error>> {
         let mut record_file = Vec::new();
         let read_file = File::open(&self.filename).expect("Could not open file.");
         let reader = BufReader::new(read_file);
@@ -74,9 +78,9 @@ impl RecordFile for CsvFile {
         let write_string = self.create_csv_line_from_vec(&record);
         record_file[pos - 1] = format!("{}", write_string);
         let mut write_file = File::create(&self.filename).expect("Could not open file.");
-        for entry in &record_file {                                                                                                                                                                  
-            writeln!(write_file, "{}", entry)?;                                                                                                                            
-        }  
+        for entry in &record_file {
+            writeln!(write_file, "{}", entry)?;
+        }
         Ok(())
     }
 
@@ -99,7 +103,7 @@ impl RecordFile for CsvFile {
                     return Some(finished_pomodoros_int);
                 }
                 return None;
-            },
+            }
             Err(_) => return None,
         }
     }
@@ -122,27 +126,26 @@ impl RecordFile for CsvFile {
                     return Some((last_pomodoro_date, line_position));
                 }
                 return None;
-            },
+            }
             Err(_) => return None,
         }
     }
-} 
-
+}
 
 #[cfg(test)]
 mod tests {
     extern crate remove_dir_all;
-    use remove_dir_all::*;
-    use std::fs::{File, DirBuilder};
-    use std::io::{BufRead, BufReader};
     use crate::files::csvfile::CsvFile;
     use crate::files::recordfile::RecordFile;
+    use remove_dir_all::*;
+    use serial_test_derive::serial;
+    use std::fs::{DirBuilder, File};
+    use std::io::{BufRead, BufReader};
     use std::thread;
     use std::time::Duration;
-    use serial_test_derive::serial;
 
     static FILENAME: &str = "./temp/record.csv";
-    
+
     fn setup() {
         DirBuilder::new().create("./temp").unwrap();
     }
@@ -168,7 +171,7 @@ mod tests {
                     return Some((last_line.clone(), line_position));
                 }
                 return None;
-            },
+            }
             Err(_) => return None,
         }
     }
@@ -205,7 +208,7 @@ mod tests {
                 clean_up();
                 assert!(line_no == 1);
                 assert_eq!(last_entry, format!("{},{}", "Test", "Headers"));
-            },
+            }
             None => {
                 clean_up();
                 panic!();
@@ -221,13 +224,14 @@ mod tests {
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let content = content_vec("2019-01-01", "1");
-        file.append_new_line(&content).expect("Something went wrong");
+        file.append_new_line(&content)
+            .expect("Something went wrong");
         match get_last_entry_and_line_no() {
             Some((last_entry, line_no)) => {
                 clean_up();
                 assert!(line_no == 2);
                 assert_eq!(last_entry, format!("{},{}", "2019-01-01", "1"));
-            },
+            }
             None => {
                 clean_up();
                 panic!();
@@ -243,16 +247,18 @@ mod tests {
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let mut content = content_vec("2019-01-01", "1");
-        file.append_new_line(&content).expect("Something went wrong");
+        file.append_new_line(&content)
+            .expect("Something went wrong");
         let pos: usize = 2;
         content = content_vec("2019-01-01", "2");
-        file.overwrite_record_in_pos_with(pos, content).expect("Something went wrong");
+        file.overwrite_record_in_pos_with(pos, content)
+            .expect("Something went wrong");
         match get_last_entry_and_line_no() {
             Some((last_entry, line_no)) => {
                 clean_up();
                 assert!(line_no == 2);
                 assert_eq!(last_entry, format!("{},{}", "2019-01-01", "2"));
-            },
+            }
             None => {
                 clean_up();
                 panic!();
@@ -268,15 +274,17 @@ mod tests {
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let mut content = content_vec("2019-01-01", "1");
-        file.append_new_line(&content).expect("Something went wrong");
+        file.append_new_line(&content)
+            .expect("Something went wrong");
         let pos: usize = 2;
         content = content_vec("2019-01-01", "2");
-        file.overwrite_record_in_pos_with(pos, content).expect("Something went wrong");
+        file.overwrite_record_in_pos_with(pos, content)
+            .expect("Something went wrong");
         match file.get_last_pomodoro_count() {
             Some(no) => {
                 clean_up();
                 assert!(no == 2);
-            },
+            }
             None => {
                 clean_up();
                 panic!();
@@ -292,16 +300,18 @@ mod tests {
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let mut content = content_vec("2019-01-01", "1");
-        file.append_new_line(&content).expect("Something went wrong");
+        file.append_new_line(&content)
+            .expect("Something went wrong");
         let pos: usize = 2;
         content = content_vec("2019-01-01", "2");
-        file.overwrite_record_in_pos_with(pos, content).expect("Something went wrong");
+        file.overwrite_record_in_pos_with(pos, content)
+            .expect("Something went wrong");
         match file.get_last_pomodoro_date_and_line_no() {
             Some((last_date, line_no)) => {
                 clean_up();
                 assert!(line_no == 2);
                 assert_eq!(last_date, "2019-01-01");
-            },
+            }
             None => {
                 clean_up();
                 panic!();
