@@ -24,9 +24,9 @@ impl<'a> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: (config.pomodoro_time_in_mins * (60 as f32)) as u64,
-            short_break_time_in_secs: (config.short_break_time_in_mins * (60 as f32)) as u64,
-            long_break_time_in_secs: (config.long_break_time_in_mins * (60 as f32)) as u64,
+            pomodoro_time_in_secs: Pomodoro::convert_minutes_to_seconds(config.pomodoro_time_in_mins),
+            short_break_time_in_secs: Pomodoro::convert_minutes_to_seconds(config.short_break_time_in_mins),
+            long_break_time_in_secs: Pomodoro::convert_minutes_to_seconds(config.long_break_time_in_mins),
             current_state: PomodoroStates::Pomodoro,
             next_state: PomodoroStates::Pomodoro,
             state_observers: Vec::new(),
@@ -122,6 +122,10 @@ impl<'a> Pomodoro<'a> {
             observer.callback(self.next_state.clone(), self.finished_pomodoros);
         }
     }
+
+    fn convert_minutes_to_seconds(minutes: f32) -> u64 {
+        (minutes * (60 as f32)) as u64
+    }
 }
 
 impl<'a> ConcSender<PomodoroChannel> for Pomodoro<'a> {
@@ -141,16 +145,14 @@ impl<'a> ConcReceiver<UIChannel> for Pomodoro<'a> {
 #[cfg(test)]
 mod tests {
     extern crate simulacrum;
-    use crate::observers::Observer;
     use crate::communication::*;
+    use crate::observers::Observer;
     use crate::pomodoro::*;
     #[macro_use]
     use simulacrum::*;
     use std::sync::mpsc::channel;
     use std::thread;
     use std::time::Duration;
-    use crate::pomodoro::pomodoroconfig::PomodoroConfig;
-    use crate::pomodoro::pomodorostates::PomodoroStates;
 
     fn zero_time_pom_config() -> PomodoroConfig {
         PomodoroConfig {
@@ -244,13 +246,11 @@ mod tests {
 
     #[test]
     fn updates_are_sent_correctly() {
-        let mut pom = Pomodoro::new(
-            PomodoroConfig {
-                pomodoro_time_in_mins: 0.2 as f32,
-                short_break_time_in_mins: 0 as f32,
-                long_break_time_in_mins: 0 as f32,
-            }
-        );
+        let mut pom = Pomodoro::new(PomodoroConfig {
+            pomodoro_time_in_mins: 0.2 as f32,
+            short_break_time_in_mins: 0 as f32,
+            long_break_time_in_mins: 0 as f32,
+        });
         let (sender, receiver) = channel();
         pom.register_receiver(receiver);
         let pom_receiver = pom.chan_sender();

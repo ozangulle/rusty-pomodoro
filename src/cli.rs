@@ -59,14 +59,13 @@ impl CLI {
         while frame < 5 {
             print!("\r");
             if remaining_secs > 60 {
-                let time_to_show = remaining_secs / 60;
                 print!(
-                    "{} {} minutes remaining    ",
-                    animation[frame], time_to_show
+                    "{} {} minutes remaining ",
+                    animation[frame], self.remaining_minutes(remaining_secs)
                 );
             } else {
                 print!(
-                    "{} {} seconds remaining    ",
+                    "{} {} seconds remaining ",
                     animation[frame], remaining_secs
                 );
             }
@@ -75,6 +74,10 @@ impl CLI {
             frame = frame + 1;
         }
         self.listening_loop();
+    }
+
+    fn remaining_minutes(&self, remaining_secs: u64) -> u64 {
+        (remaining_secs as f64 / 60 as f64).ceil() as u64
     }
 
     fn listening_loop(&self) {
