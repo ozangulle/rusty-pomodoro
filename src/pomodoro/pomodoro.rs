@@ -24,9 +24,9 @@ impl<'a> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: config.pomodoro_time_in_secs,
-            short_break_time_in_secs: config.short_break_time_in_secs,
-            long_break_time_in_secs: config.long_break_time_in_secs,
+            pomodoro_time_in_secs: (config.pomodoro_time_in_mins * (60 as f32)) as u64,
+            short_break_time_in_secs: (config.short_break_time_in_mins * (60 as f32)) as u64,
+            long_break_time_in_secs: (config.long_break_time_in_mins * (60 as f32)) as u64,
             current_state: PomodoroStates::Pomodoro,
             next_state: PomodoroStates::Pomodoro,
             state_observers: Vec::new(),
@@ -142,33 +142,27 @@ impl<'a> ConcReceiver<UIChannel> for Pomodoro<'a> {
 mod tests {
     extern crate simulacrum;
     use crate::observers::Observer;
-    use crate::communication::UIChannel;
+    use crate::communication::*;
     use crate::pomodoro::*;
     #[macro_use]
     use simulacrum::*;
     use std::sync::mpsc::channel;
-    use std::sync::mpsc::{Receiver, Sender};
     use std::thread;
     use std::time::Duration;
+    use crate::pomodoro::pomodoroconfig::PomodoroConfig;
+    use crate::pomodoro::pomodorostates::PomodoroStates;
 
-    create_mock! {
-        impl IOComponent for MockIO (self) {
-            expect_ask_to_continue("ask_to_continue"):
-            fn ask_to_continue(&self, next_state: PomodoroStates, finished_pomodoros: u32)-> (bool, Sender<bool>);
-        }
-    }
-
-    fn pom_config() -> PomodoroConfig {
+    fn zero_time_pom_config() -> PomodoroConfig {
         PomodoroConfig {
-            pomodoro_time_in_secs: 0,
-            short_break_time_in_secs: 0,
-            long_break_time_in_secs: 0,
+            pomodoro_time_in_mins: 0 as f32,
+            short_break_time_in_mins: 0 as f32,
+            long_break_time_in_mins: 0 as f32,
         }
     }
 
     #[test]
     fn state_jumps_from_pomodoro_to_short_break() {
-        let pom_config = pom_config();
+        let pom_config = zero_time_pom_config();
         let mut pom = Pomodoro::new(pom_config);
         let (sender, receiver) = channel();
         pom.register_receiver(receiver);
@@ -183,7 +177,7 @@ mod tests {
 
     #[test]
     fn after_four_pomodoros_come_a_long_break() {
-        let pom_config = pom_config();
+        let pom_config = zero_time_pom_config();
         let mut pom = Pomodoro::new(pom_config);
         let (sender, receiver) = channel();
         pom.register_receiver(receiver);
@@ -202,8 +196,7 @@ mod tests {
 
     #[test]
     fn continue_from_existing_record() {
-        let pom_config = pom_config();
-        let mock_io = MockIO::new();
+        let pom_config = zero_time_pom_config();
         let pom = Pomodoro::continue_from(12, pom_config);
         assert_eq!(pom.finished_pomodoros, 12);
     }
@@ -217,7 +210,7 @@ mod tests {
             }
         }
         let observer = MockObserver::new();
-        let pom_config = pom_config();
+        let pom_config = zero_time_pom_config();
         let mut pom = Pomodoro::new(pom_config);
         assert_eq!(pom.state_observers.len(), 0);
         pom.add_observer(&observer);
@@ -237,7 +230,7 @@ mod tests {
             .expect_callback()
             .called_once()
             .with(params!(PomodoroStates::ShortBreak, 1));
-        let pom_config = pom_config();
+        let pom_config = zero_time_pom_config();
         let mut pom = Pomodoro::new(pom_config);
         pom.add_observer(&observer);
         let (sender, receiver) = channel();
@@ -247,5 +240,36 @@ mod tests {
             sender.send(UIChannel::Proceed);
         });
         pom.listen_loop();
+    }
+
+    #[test]
+    fn updates_are_sent_correctly() {
+        let mut pom = Pomodoro::new(
+            PomodoroConfig {
+                pomodoro_time_in_mins: 0.2 as f32,
+                short_break_time_in_mins: 0 as f32,
+                long_break_time_in_mins: 0 as f32,
+            }
+        );
+        let (sender, receiver) = channel();
+        pom.register_receiver(receiver);
+        let pom_receiver = pom.chan_sender();
+        let mut actual_results: Vec<(u64)> = vec![];
+        let handle = thread::spawn(move || {
+            thread::sleep(Duration::from_micros(10));
+            sender.send(UIChannel::Proceed);
+            for _ in 0..3 {
+                match pom_receiver.recv().unwrap() {
+                    PomodoroChannel::Update(remaining_secs) => actual_results.push(remaining_secs),
+                    PomodoroChannel::Completed(_next_state, _finished_pomodoros) => (),
+                }
+            }
+            actual_results
+        });
+        pom.listen_loop();
+        let actual_results = handle.join().unwrap();
+        assert_eq!(actual_results[0], 12 as u64);
+        assert_eq!(actual_results[1], 7 as u64);
+        assert_eq!(actual_results[2], 2 as u64);
     }
 }

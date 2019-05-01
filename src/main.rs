@@ -9,9 +9,9 @@ use std::thread;
 
 fn main() {
     let config = PomodoroConfig {
-        pomodoro_time_in_secs: 25 * 60,
-        short_break_time_in_secs: 5 * 60,
-        long_break_time_in_secs: 15 * 60,
+        pomodoro_time_in_mins: 25 as f32,
+        short_break_time_in_mins: 5 as f32,
+        long_break_time_in_mins: 15 as f32,
     };
     let record = Record::new(
         Arc::new(
