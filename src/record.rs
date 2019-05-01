@@ -31,7 +31,7 @@ impl Record {
     pub fn no_of_finished_pomodoros_from_record(&self) -> Option<u32> {
         let locked_file = self.record_file.lock().unwrap();
         match locked_file.get_last_pomodoro_date_and_line_no() {
-            Some((last_date, line_no)) => {
+            Some((last_date, _line_no)) => {
                 if last_date == self.current_date {
                     locked_file.get_last_pomodoro_count()
                 } else {
@@ -42,7 +42,7 @@ impl Record {
         }
     }
 
-    fn process(&self, next_state: PomodoroStates, finished_pomodoros: u32) {
+    fn process(&self, _next_state: PomodoroStates, finished_pomodoros: u32) {
         match self.write_record(finished_pomodoros) {
             Ok(()) => (),
             Err(_) => println!("Error: There was an error while writing to the record."),

@@ -1,7 +1,5 @@
 use crate::communication::*;
-use crate::pomodoro::IOComponent;
 use crate::pomodoro::PomodoroStates;
-
 use std::io::{stdin, stdout, Write};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
@@ -36,7 +34,15 @@ impl CLI {
             print!("Let's have a long break. ")
         }
         self.pause();
-        self.ui_sender.as_ref().unwrap().send(UIChannel::Proceed);
+        match self.ui_sender.as_ref() {
+            Some(channel) => {
+                match channel.send(UIChannel::Proceed) {
+                    Ok(_) => (),
+                    Err(_) => (),
+                }
+            },
+            None => (),
+        }
         self.listening_loop();
     }
 

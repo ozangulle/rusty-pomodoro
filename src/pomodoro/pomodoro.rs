@@ -1,21 +1,10 @@
 use crate::communication::*;
 use crate::observers::*;
+use crate::pomodoro::PomodoroStates;
+use crate::pomodoro::PomodoroConfig;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum PomodoroStates {
-    Pomodoro,
-    ShortBreak,
-    LongBreak,
-}
-
-pub struct PomodoroConfig {
-    pub pomodoro_time_in_secs: u64,
-    pub short_break_time_in_secs: u64,
-    pub long_break_time_in_secs: u64,
-}
 
 pub struct Pomodoro<'a> {
     pub finished_pomodoros: u32,
@@ -25,17 +14,9 @@ pub struct Pomodoro<'a> {
     long_break_time_in_secs: u64,
     pub next_state: PomodoroStates,
     pub current_state: PomodoroStates,
-    pub state_observers: Vec<&'a Observer>,
+    pub state_observers: Vec<&'a dyn Observer>,
     ui_receiver: Option<Receiver<UIChannel>>,
     pom_sender: Option<Sender<PomodoroChannel>>,
-}
-
-pub trait IOComponent {
-    fn ask_to_continue(
-        &self,
-        next_state: PomodoroStates,
-        finished_pomodoros: u32,
-    ) -> (bool, Sender<bool>);
 }
 
 impl<'a> Pomodoro<'a> {
