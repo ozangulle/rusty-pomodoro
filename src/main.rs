@@ -13,13 +13,9 @@ fn main() {
         short_break_time_in_mins: 5 as f32,
         long_break_time_in_mins: 15 as f32,
     };
-    let record = Record::new(
-        Arc::new(
-            Mutex::new(
-                CsvFile::new("pom-record.csv".to_string())
-            )
-        )
-    );
+    let record = Record::new(Arc::new(Mutex::new(CsvFile::new(
+        "pom-record.csv".to_string(),
+    ))));
     record.initialize();
     let mut pomodoro: Pomodoro;
     let mut no_of_finished_pomodoros = 0;

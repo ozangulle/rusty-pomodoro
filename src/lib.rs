@@ -6,4 +6,3 @@ pub mod pomodoro;
 pub mod record;
 
 extern crate chrono;
-extern crate math;

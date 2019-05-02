@@ -1,7 +1,7 @@
 use crate::communication::*;
 use crate::observers::*;
-use crate::pomodoro::PomodoroStates;
 use crate::pomodoro::PomodoroConfig;
+use crate::pomodoro::PomodoroStates;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
@@ -24,9 +24,15 @@ impl<'a> Pomodoro<'a> {
         Pomodoro {
             finished_pomodoros: 0,
             no_of_breaks: 0,
-            pomodoro_time_in_secs: Pomodoro::convert_minutes_to_seconds(config.pomodoro_time_in_mins),
-            short_break_time_in_secs: Pomodoro::convert_minutes_to_seconds(config.short_break_time_in_mins),
-            long_break_time_in_secs: Pomodoro::convert_minutes_to_seconds(config.long_break_time_in_mins),
+            pomodoro_time_in_secs: Pomodoro::convert_minutes_to_seconds(
+                config.pomodoro_time_in_mins,
+            ),
+            short_break_time_in_secs: Pomodoro::convert_minutes_to_seconds(
+                config.short_break_time_in_mins,
+            ),
+            long_break_time_in_secs: Pomodoro::convert_minutes_to_seconds(
+                config.long_break_time_in_mins,
+            ),
             current_state: PomodoroStates::Pomodoro,
             next_state: PomodoroStates::Pomodoro,
             state_observers: Vec::new(),
