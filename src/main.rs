@@ -1,4 +1,4 @@
-use rusty_pomodoro::cli::CLI;
+use rusty_pomodoro::ui::UI;
 use rusty_pomodoro::communication::*;
 use rusty_pomodoro::files::*;
 use rusty_pomodoro::pomodoro::Pomodoro;
@@ -29,7 +29,7 @@ fn main() {
         }
     }
     pomodoro.add_observer(&record);
-    let mut cli = CLI::new();
+    let mut cli = UI::new();
     let cli_receiver = cli.chan_sender();
     let pom_receiver = pomodoro.chan_sender();
     cli.register_receiver(pom_receiver);

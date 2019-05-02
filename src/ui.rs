@@ -6,15 +6,15 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
 
-pub struct CLI {
+pub struct UI {
     ui_sender: Option<Sender<UIChannel>>,
     pom_receiver: Option<Receiver<PomodoroChannel>>,
     terminal: Terminal,
 }
 
-impl CLI {
-    pub fn new() -> CLI {
-        CLI {
+impl UI {
+    pub fn new() -> UI {
+        UI {
             ui_sender: None,
             pom_receiver: None,
             terminal: terminal(),
@@ -119,7 +119,7 @@ impl CLI {
     }
 }
 
-impl ConcSender<UIChannel> for CLI {
+impl ConcSender<UIChannel> for UI {
     fn chan_sender(&mut self) -> Receiver<UIChannel> {
         let (sender, receiver) = channel();
         self.ui_sender = Some(sender);
@@ -127,7 +127,7 @@ impl ConcSender<UIChannel> for CLI {
     }
 }
 
-impl ConcReceiver<PomodoroChannel> for CLI {
+impl ConcReceiver<PomodoroChannel> for UI {
     fn register_receiver(&mut self, receiver: Receiver<PomodoroChannel>) {
         self.pom_receiver = Some(receiver);
     }

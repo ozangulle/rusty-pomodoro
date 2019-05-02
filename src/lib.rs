@@ -1,4 +1,4 @@
-pub mod cli;
+pub mod ui;
 pub mod communication;
 pub mod files;
 pub mod observers;
