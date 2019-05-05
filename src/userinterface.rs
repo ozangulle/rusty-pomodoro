@@ -4,20 +4,23 @@ use crossterm::{terminal, ClearType, Color, Colored, Terminal};
 use std::io::{stdin, stdout, Write};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
+use std::sync::Arc;
 use std::time::Duration;
+use crate::ui::Output;
+use crate::uimessages::UIMessages;
 
-pub struct UI {
+pub struct UserInterface {
     ui_sender: Option<Sender<UIChannel>>,
     pom_receiver: Option<Receiver<PomodoroChannel>>,
-    terminal: Terminal,
+    output: Arc<dyn Output>,
 }
 
-impl UI {
-    pub fn new() -> UI {
-        UI {
+impl UserInterface{
+    pub fn new(output: Arc<dyn Output>) -> UserInterface {
+        UserInterface {
             ui_sender: None,
             pom_receiver: None,
-            terminal: terminal(),
+            output,
         }
     }
 
@@ -26,16 +29,15 @@ impl UI {
     }
 
     fn ask_for_ack(&mut self, next_state: PomodoroStates, finished_pomodoros: u32) {
-        self.terminal.clear(ClearType::All);
         self.print_finished_pomodoro_str(finished_pomodoros);
         if next_state == PomodoroStates::Pomodoro {
-            print!("Starting a new pomodoro.");
+            self.output.display(UIMessages::StateMessage("Starting a new pomodoro.".to_string()));
         } else if next_state == PomodoroStates::ShortBreak {
-            print!("Let's have a short break.")
+            self.output.display(UIMessages::StateMessage("Let's have a short break.".to_string()));
         } else if next_state == PomodoroStates::LongBreak {
-            print!("Let's have a long break.")
+            self.output.display(UIMessages::StateMessage("Let's have a long break.".to_string()));
         }
-        self.pause();
+        self.wait_for_user_input();
         match self.ui_sender.as_ref() {
             Some(channel) => match channel.send(UIChannel::Proceed) {
                 Ok(_) => (),
@@ -46,39 +48,22 @@ impl UI {
         self.listening_loop();
     }
 
-    fn pause(&self) {
-        let mut s = String::new();
-        print!(" Please press enter...");
-        let _ = stdout().flush();
-        stdin().read_line(&mut s);
+    fn wait_for_user_input(&self) {
+        self.output.display(UIMessages::InputMessage());
     }
 
     fn play_animation(&mut self, remaining_secs: u64) {
-        let mut frame: usize = 0;
-        let animation = vec!["|", "/", "-", "\\", "."];
-        while frame < 5 {
-            self.terminal.clear(ClearType::CurrentLine);
-            print!("\r");
-            if remaining_secs > 60 {
-                self.print_styled_message(
-                    &format!(
-                        "{} {} minutes remaining",
-                        animation[frame],
-                        self.remaining_minutes(remaining_secs)
-                    ),
-                    Colored::Fg(Color::Blue),
-                );
-            } else {
-                self.print_styled_message(
-                    &format!("{} {} seconds remaining", animation[frame], remaining_secs),
-                    Colored::Fg(Color::Red),
-                );
-            }
-            stdout().flush();
-            if frame < 4 {
-                thread::sleep(Duration::from_secs(1));
-            }
-            frame = frame + 1;
+        if remaining_secs > 60 {
+            self.output.display(UIMessages::ProgressMessage(
+                format!(
+                    "{} minutes remaining",
+                    self.remaining_minutes(remaining_secs)
+                )),
+            );
+        } else {
+            self.output.display(UIMessages::ProgressMessage(
+                format!("{} seconds remaining", remaining_secs)
+            ));
         }
         self.listening_loop();
     }
@@ -107,19 +92,11 @@ impl UI {
         finished_string.push_str("You have finished ");
         finished_string.push_str(&finished.to_string());
         finished_string.push_str(" pomodoros today.");
-        self.new_line_styled_message(finished_string.as_str(), Colored::Fg(Color::White));
-    }
-
-    fn print_styled_message(&self, message: &str, style: Colored) {
-        print!("{}{}", style, message);
-    }
-
-    fn new_line_styled_message(&self, message: &str, style: Colored) {
-        println!("{}{}", style, message);
+        self.output.display(UIMessages::SummaryMessage(finished_string));
     }
 }
 
-impl ConcSender<UIChannel> for UI {
+impl ConcSender<UIChannel> for UserInterface {
     fn chan_sender(&mut self) -> Receiver<UIChannel> {
         let (sender, receiver) = channel();
         self.ui_sender = Some(sender);
@@ -127,7 +104,7 @@ impl ConcSender<UIChannel> for UI {
     }
 }
 
-impl ConcReceiver<PomodoroChannel> for UI {
+impl ConcReceiver<PomodoroChannel> for UserInterface {
     fn register_receiver(&mut self, receiver: Receiver<PomodoroChannel>) {
         self.pom_receiver = Some(receiver);
     }
