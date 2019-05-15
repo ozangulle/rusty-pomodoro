@@ -1,18 +1,18 @@
-use rusty_pomodoro::userinterface::UserInterface;
 use rusty_pomodoro::communication::*;
 use rusty_pomodoro::files::*;
 use rusty_pomodoro::pomodoro::Pomodoro;
 use rusty_pomodoro::pomodoro::PomodoroConfig;
 use rusty_pomodoro::record::Record;
 use rusty_pomodoro::ui::*;
+use rusty_pomodoro::userinterface::UserInterface;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
     let config = PomodoroConfig {
-        pomodoro_time_in_mins: 0.1 as f32,
-        short_break_time_in_mins: 0.1 as f32,
-        long_break_time_in_mins: 0.1 as f32,
+        pomodoro_time_in_mins: 25 as f32,
+        short_break_time_in_mins: 5 as f32,
+        long_break_time_in_mins: 15 as f32,
     };
     let record = Record::new(Arc::new(Mutex::new(CsvFile::new(
         "pom-record.csv".to_string(),

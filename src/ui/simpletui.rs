@@ -1,9 +1,9 @@
-use crossterm::{terminal, ClearType, Color, Colored, Terminal};
-use std::io::{stdin, stdout, Write};
 use crate::ui::Output;
 use crate::uimessages::UIMessages;
-use std::time::Duration;
+use crossterm::{terminal, ClearType, Color, Colored, Terminal};
+use std::io::{stdin, stdout, Write};
 use std::thread;
+use std::time::Duration;
 
 pub struct SimpleTUI {
     terminal: Terminal,
@@ -11,7 +11,7 @@ pub struct SimpleTUI {
 
 impl SimpleTUI {
     pub fn new() -> SimpleTUI {
-        SimpleTUI{
+        SimpleTUI {
             terminal: terminal(),
         }
     }
@@ -22,14 +22,8 @@ impl SimpleTUI {
         while frame < 5 {
             self.terminal.clear(ClearType::CurrentLine);
             print!("\r");
-            self.print_styled_message(
-                animation[frame],
-                Colored::Fg(Color::Yellow),
-            );
-            self.print_styled_message(
-                ui_message.as_str(),
-                Colored::Fg(Color::Cyan),
-            );
+            self.print_styled_message(animation[frame], Colored::Fg(Color::Yellow));
+            self.print_styled_message(ui_message.as_str(), Colored::Fg(Color::Cyan));
             stdout().flush();
             if frame < 4 {
                 thread::sleep(Duration::from_secs(1));
@@ -39,26 +33,17 @@ impl SimpleTUI {
     }
 
     fn print_state_message(&self, state_message: String) {
-        self.print_styled_message(
-            state_message.as_str(),
-            Colored::Fg(Color::White),
-        );
+        self.print_styled_message(state_message.as_str(), Colored::Fg(Color::White));
     }
 
     fn print_summary_message(&self, summary_message: String) {
         self.terminal.clear(ClearType::All);
-        self.new_line_styled_message(
-            summary_message.as_str(),
-            Colored::Fg(Color::White),
-        );
+        self.new_line_styled_message(summary_message.as_str(), Colored::Fg(Color::White));
     }
 
     fn ask_for_input(&self) {
         let mut s = String::new();
-        self.print_styled_message(
-            " Please press enter...",
-            Colored::Fg(Color::White),
-        );
+        self.print_styled_message(" Please press enter...", Colored::Fg(Color::White));
         let _ = stdout().flush();
         stdin().read_line(&mut s);
     }

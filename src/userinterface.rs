@@ -1,13 +1,13 @@
 use crate::communication::*;
 use crate::pomodoro::PomodoroStates;
+use crate::ui::Output;
+use crate::uimessages::UIMessages;
 use crossterm::{terminal, ClearType, Color, Colored, Terminal};
 use std::io::{stdin, stdout, Write};
 use std::sync::mpsc::{channel, Receiver, Sender};
-use std::thread;
 use std::sync::Arc;
+use std::thread;
 use std::time::Duration;
-use crate::ui::Output;
-use crate::uimessages::UIMessages;
 
 pub struct UserInterface {
     ui_sender: Option<Sender<UIChannel>>,
@@ -15,7 +15,7 @@ pub struct UserInterface {
     output: Arc<dyn Output>,
 }
 
-impl UserInterface{
+impl UserInterface {
     pub fn new(output: Arc<dyn Output>) -> UserInterface {
         UserInterface {
             ui_sender: None,
@@ -31,11 +31,17 @@ impl UserInterface{
     fn ask_for_ack(&mut self, next_state: PomodoroStates, finished_pomodoros: u32) {
         self.print_finished_pomodoro_str(finished_pomodoros);
         if next_state == PomodoroStates::Pomodoro {
-            self.output.display(UIMessages::StateMessage("Starting a new pomodoro.".to_string()));
+            self.output.display(UIMessages::StateMessage(
+                "Starting a new pomodoro.".to_string(),
+            ));
         } else if next_state == PomodoroStates::ShortBreak {
-            self.output.display(UIMessages::StateMessage("Let's have a short break.".to_string()));
+            self.output.display(UIMessages::StateMessage(
+                "Let's have a short break.".to_string(),
+            ));
         } else if next_state == PomodoroStates::LongBreak {
-            self.output.display(UIMessages::StateMessage("Let's have a long break.".to_string()));
+            self.output.display(UIMessages::StateMessage(
+                "Let's have a long break.".to_string(),
+            ));
         }
         self.wait_for_user_input();
         match self.ui_sender.as_ref() {
@@ -54,16 +60,15 @@ impl UserInterface{
 
     fn play_animation(&mut self, remaining_secs: u64) {
         if remaining_secs > 60 {
-            self.output.display(UIMessages::ProgressMessage(
-                format!(
-                    "{} minutes remaining",
-                    self.remaining_minutes(remaining_secs)
-                )),
-            );
+            self.output.display(UIMessages::ProgressMessage(format!(
+                "{} minutes remaining",
+                self.remaining_minutes(remaining_secs)
+            )));
         } else {
-            self.output.display(UIMessages::ProgressMessage(
-                format!("{} seconds remaining", remaining_secs)
-            ));
+            self.output.display(UIMessages::ProgressMessage(format!(
+                "{} seconds remaining",
+                remaining_secs
+            )));
         }
         self.listening_loop();
     }
@@ -92,7 +97,8 @@ impl UserInterface{
         finished_string.push_str("You have finished ");
         finished_string.push_str(&finished.to_string());
         finished_string.push_str(" pomodoros today.");
-        self.output.display(UIMessages::SummaryMessage(finished_string));
+        self.output
+            .display(UIMessages::SummaryMessage(finished_string));
     }
 }
 
