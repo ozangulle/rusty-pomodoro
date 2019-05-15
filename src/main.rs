@@ -1,9 +1,10 @@
-use rusty_pomodoro::cli::CLI;
 use rusty_pomodoro::communication::*;
 use rusty_pomodoro::files::*;
 use rusty_pomodoro::pomodoro::Pomodoro;
 use rusty_pomodoro::pomodoro::PomodoroConfig;
 use rusty_pomodoro::record::Record;
+use rusty_pomodoro::ui::*;
+use rusty_pomodoro::userinterface::UserInterface;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -13,13 +14,9 @@ fn main() {
         short_break_time_in_mins: 5 as f32,
         long_break_time_in_mins: 15 as f32,
     };
-    let record = Record::new(
-        Arc::new(
-            Mutex::new(
-                CsvFile::new("pom-record.csv".to_string())
-            )
-        )
-    );
+    let record = Record::new(Arc::new(Mutex::new(CsvFile::new(
+        "pom-record.csv".to_string(),
+    ))));
     record.initialize();
     let mut pomodoro: Pomodoro;
     let mut no_of_finished_pomodoros = 0;
@@ -33,13 +30,13 @@ fn main() {
         }
     }
     pomodoro.add_observer(&record);
-    let mut cli = CLI::new();
-    let cli_receiver = cli.chan_sender();
+    let mut ui = UserInterface::new(Arc::new(SimpleTUI::new()));
+    let cli_receiver = ui.chan_sender();
     let pom_receiver = pomodoro.chan_sender();
-    cli.register_receiver(pom_receiver);
+    ui.register_receiver(pom_receiver);
     pomodoro.register_receiver(cli_receiver);
     thread::spawn(move || {
-        cli.start(no_of_finished_pomodoros);
+        ui.start(no_of_finished_pomodoros);
     });
     pomodoro.listen_loop();
 }
