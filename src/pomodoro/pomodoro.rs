@@ -53,15 +53,13 @@ impl<'a> Pomodoro<'a> {
     }
 
     pub fn listen_loop(&mut self) {
-        match self.ui_receiver.as_ref() {
-            Some(channel) => match channel.recv() {
-                Ok(message) => match message {
+        if let Some(channel) = self.ui_receiver.as_ref() {
+             if let Ok(message) = channel.recv() {
+                 match message {
                     UIChannel::Proceed => self.run_pom_cycle(),
                     UIChannel::Cancel => (),
-                },
-                Err(_) => (),
-            },
-            None => (),
+                }
+            }
         }
     }
 
@@ -80,7 +78,7 @@ impl<'a> Pomodoro<'a> {
             PomodoroStates::ShortBreak => {
                 self.next_state = PomodoroStates::Pomodoro;
                 self.current_state = PomodoroStates::ShortBreak;
-                self.no_of_breaks = self.no_of_breaks + 1;
+                self.no_of_breaks += 1;
                 self.wait_for_seconds(self.short_break_time_in_secs);
             }
             PomodoroStates::LongBreak => {
@@ -115,11 +113,8 @@ impl<'a> Pomodoro<'a> {
     }
 
     fn send_update(&self, remaining_secs: u64) {
-        match self.pom_sender.as_ref() {
-            Some(channel) => {
-                channel.send(PomodoroChannel::Update(remaining_secs));
-            }
-            None => (),
+        if let Some(channel) = self.pom_sender.as_ref() {
+            channel.send(PomodoroChannel::Update(remaining_secs));
         }
     }
 

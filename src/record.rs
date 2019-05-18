@@ -96,7 +96,7 @@ impl Record {
         let mut vec = Vec::new();
         vec.push(first_str.clone());
         vec.push(sec_str.clone());
-        return vec;
+        vec
     }
 }
 

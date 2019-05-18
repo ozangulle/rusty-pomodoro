@@ -20,15 +20,15 @@ impl SimpleTUI {
         let mut frame: usize = 0;
         let animation = vec!["| ", "/ ", "- ", "\\ ", ". "];
         while frame < 5 {
-            self.terminal.clear(ClearType::CurrentLine);
+            self.terminal.clear(ClearType::CurrentLine).unwrap();
             print!("\r");
             self.print_styled_message(animation[frame], Colored::Fg(Color::Yellow));
             self.print_styled_message(ui_message.as_str(), Colored::Fg(Color::Cyan));
-            stdout().flush();
+            stdout().flush().unwrap();
             if frame < 4 {
                 thread::sleep(Duration::from_secs(1));
             }
-            frame = frame + 1;
+            frame += 1;
         }
     }
 
@@ -37,7 +37,7 @@ impl SimpleTUI {
     }
 
     fn print_summary_message(&self, summary_message: String) {
-        self.terminal.clear(ClearType::All);
+        self.terminal.clear(ClearType::All).unwrap();
         self.new_line_styled_message(summary_message.as_str(), Colored::Fg(Color::White));
     }
 
@@ -45,7 +45,7 @@ impl SimpleTUI {
         let mut s = String::new();
         self.print_styled_message(" Please press enter...", Colored::Fg(Color::White));
         let _ = stdout().flush();
-        stdin().read_line(&mut s);
+        stdin().read_line(&mut s).unwrap();
     }
 
     fn print_styled_message(&self, message: &str, style: Colored) {
@@ -65,5 +65,11 @@ impl Output for SimpleTUI {
             UIMessages::SummaryMessage(message) => self.print_summary_message(message),
             UIMessages::ProgressMessage(message) => self.play_animation(message),
         }
+    }
+}
+
+impl Default for SimpleTUI {
+    fn default() -> Self {
+        SimpleTUI::new()
     }
 }

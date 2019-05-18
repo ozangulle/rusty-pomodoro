@@ -48,7 +48,7 @@ impl RecordFile for CsvFile {
                 self.write_headers(headers)
                     .expect("Headers could not be written");
                 match created {
-                    Ok(_) => println!("{} {}", "Created record file:", &self.filename),
+                    Ok(_) => println!("Created record file: {}", &self.filename),
                     Err(_) => println!("Could not create the record file."),
                 }
             }
@@ -102,9 +102,9 @@ impl RecordFile for CsvFile {
                     let finished_pomodoros_int = finished_pomodoros_string.parse::<u32>().unwrap();
                     return Some(finished_pomodoros_int);
                 }
-                return None;
+                None
             }
-            Err(_) => return None,
+            Err(_) => None,
         }
     }
 
@@ -121,13 +121,13 @@ impl RecordFile for CsvFile {
                     }
                 }
                 if line_position > 1 {
-                    let split_line: Vec<&str> = last_line.split(",").collect();
+                    let split_line: Vec<&str> = last_line.split(',').collect();
                     let last_pomodoro_date = split_line.first().clone().unwrap().to_string();
                     return Some((last_pomodoro_date, line_position));
                 }
-                return None;
+                None
             }
-            Err(_) => return None,
+            Err(_) => None,
         }
     }
 }
