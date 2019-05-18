@@ -1,5 +1,5 @@
 use crate::communication::*;
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::PomodoroStates;
 use crate::ui::Output;
 use crate::uimessages::UIMessages;
 use std::sync::mpsc::{channel, Receiver, Sender};

@@ -16,10 +16,10 @@ impl NullFile {
 }
 
 impl RecordFile for NullFile {
-    fn open_or_create_with_headers(&self, headers: &Vec<String>) {
+    fn open_or_create_with_headers(&self, headers: &[String]) {
         //
     }
-    fn write_headers(&self, headers: &Vec<String>) -> Result<(), Box<Error>> {
+    fn write_headers(&self, headers: &[String]) -> Result<(), Box<Error>> {
         Ok(())
     }
     fn write_record_to_new_line(&self, record: Vec<String>) -> Result<(), Box<Error>> {

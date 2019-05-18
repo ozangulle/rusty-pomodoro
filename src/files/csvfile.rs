@@ -14,7 +14,7 @@ impl CsvFile {
         }
     }
 
-    fn append_new_line(&self, contents: &Vec<String>) -> Result<(), Box<Error>> {
+    fn append_new_line(&self, contents: &[String]) -> Result<(), Box<Error>> {
         let mut write_file = OpenOptions::new()
             .create(true)
             .append(true)
@@ -24,7 +24,7 @@ impl CsvFile {
         Ok(())
     }
 
-    fn create_csv_line_from_vec(&self, vec: &Vec<String>) -> String {
+    fn create_csv_line_from_vec(&self, vec: &[String]) -> String {
         let mut write_string = String::new();
         for (i, content) in vec.iter().enumerate() {
             if i < &vec.len() - 1 {
@@ -39,7 +39,7 @@ impl CsvFile {
 }
 
 impl RecordFile for CsvFile {
-    fn open_or_create_with_headers(&self, headers: &Vec<String>) {
+    fn open_or_create_with_headers(&self, headers: &[String]) {
         let record = File::open(&self.filename);
         match record {
             Ok(_) => println!("Record file found"),
@@ -55,7 +55,7 @@ impl RecordFile for CsvFile {
         }
     }
 
-    fn write_headers(&self, headers: &Vec<String>) -> Result<(), Box<Error>> {
+    fn write_headers(&self, headers: &[String]) -> Result<(), Box<Error>> {
         self.append_new_line(headers)
     }
 
@@ -76,7 +76,7 @@ impl RecordFile for CsvFile {
             record_file.push(line);
         }
         let write_string = self.create_csv_line_from_vec(&record);
-        record_file[pos - 1] = format!("{}", write_string);
+        record_file[pos - 1] = write_string.to_string();
         let mut write_file = File::create(&self.filename).expect("Could not open file.");
         for entry in &record_file {
             writeln!(write_file, "{}", entry)?;
@@ -97,7 +97,7 @@ impl RecordFile for CsvFile {
                     }
                 }
                 if line_position > 1 {
-                    let split_line: Vec<&str> = last_line.split(",").collect();
+                    let split_line: Vec<&str> = last_line.split(',').collect();
                     let finished_pomodoros_string = split_line.last().unwrap();
                     let finished_pomodoros_int = finished_pomodoros_string.parse::<u32>().unwrap();
                     return Some(finished_pomodoros_int);
@@ -122,7 +122,7 @@ impl RecordFile for CsvFile {
                 }
                 if line_position > 1 {
                     let split_line: Vec<&str> = last_line.split(',').collect();
-                    let last_pomodoro_date = split_line.first().clone().unwrap().to_string();
+                    let last_pomodoro_date = split_line.first().unwrap().to_string();
                     return Some((last_pomodoro_date, line_position));
                 }
                 None

@@ -1,7 +1,6 @@
 use crate::communication::*;
 use crate::observers::*;
-use crate::pomodoro::PomodoroConfig;
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::*;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
@@ -54,8 +53,8 @@ impl<'a> Pomodoro<'a> {
 
     pub fn listen_loop(&mut self) {
         if let Some(channel) = self.ui_receiver.as_ref() {
-             if let Ok(message) = channel.recv() {
-                 match message {
+            if let Ok(message) = channel.recv() {
+                match message {
                     UIChannel::Proceed => self.run_pom_cycle(),
                     UIChannel::Cancel => (),
                 }
@@ -89,15 +88,12 @@ impl<'a> Pomodoro<'a> {
             }
         }
         self.notify();
-        match self.pom_sender.as_ref() {
-            Some(channel) => {
-                channel.send(PomodoroChannel::Completed(
-                    self.next_state.clone(),
-                    self.finished_pomodoros,
-                ));
-                self.listen_loop();
-            }
-            None => (),
+        if let Some(channel) = self.pom_sender.as_ref() {
+            channel.send(PomodoroChannel::Completed(
+                self.next_state.clone(),
+                self.finished_pomodoros,
+            ));
+            self.listen_loop();
         }
     }
 
@@ -148,7 +144,7 @@ mod tests {
     extern crate simulacrum;
     use crate::communication::*;
     use crate::observers::Observer;
-    use crate::pomodoro::*;
+    use crate::pomodoro_core::*;
     #[macro_use]
     use simulacrum::*;
     use std::sync::mpsc::channel;

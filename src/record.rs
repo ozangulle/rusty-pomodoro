@@ -1,6 +1,6 @@
 use crate::files::RecordFile;
 use crate::observers::Observer;
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::PomodoroStates;
 use chrono::prelude::*;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
