@@ -113,7 +113,9 @@ impl<'a> Pomodoro<'a> {
 
     fn send_update(&self, remaining_secs: u64) {
         if let Some(channel) = self.pom_sender.as_ref() {
-            channel.send(PomodoroChannel::Update(remaining_secs)).unwrap();
+            channel
+                .send(PomodoroChannel::Update(remaining_secs))
+                .unwrap();
         }
     }
 
@@ -150,10 +152,10 @@ mod tests {
     use crate::pomodoro_core::*;
     #[macro_use]
     use simulacrum::*;
+    use crate::pomodoro_core::pomodorostates::PomodoroStates;
     use std::sync::mpsc::channel;
     use std::thread;
     use std::time::Duration;
-    use crate::pomodoro_core::pomodorostates::PomodoroStates;
 
     fn zero_time_pom_config() -> PomodoroConfig {
         PomodoroConfig {
