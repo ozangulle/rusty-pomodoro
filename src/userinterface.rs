@@ -40,12 +40,8 @@ impl UserInterface {
             ));
         }
         self.wait_for_user_input();
-        // TODO decide what to do here
         if let Some(channel) = self.ui_sender.as_ref() {
-            match channel.send(UIChannel::Proceed) {
-                Ok(_) => (),
-                Err(_) => (),
-            }
+            channel.send(UIChannel::Proceed).unwrap();
         }
         self.listening_loop();
     }
