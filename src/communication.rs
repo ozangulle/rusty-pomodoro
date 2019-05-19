@@ -1,4 +1,4 @@
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::PomodoroStates;
 use std::sync::mpsc::Receiver;
 
 pub enum PomodoroChannel {

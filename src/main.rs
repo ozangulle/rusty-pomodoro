@@ -1,7 +1,7 @@
 use rusty_pomodoro::communication::*;
 use rusty_pomodoro::files::*;
-use rusty_pomodoro::pomodoro::Pomodoro;
-use rusty_pomodoro::pomodoro::PomodoroConfig;
+use rusty_pomodoro::pomodoro_core::Pomodoro;
+use rusty_pomodoro::pomodoro_core::PomodoroConfig;
 use rusty_pomodoro::record::Record;
 use rusty_pomodoro::ui::*;
 use rusty_pomodoro::userinterface::UserInterface;

@@ -1,22 +1,21 @@
 use crate::communication::*;
 use crate::observers::*;
-use crate::pomodoro::PomodoroConfig;
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::*;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::Duration;
 
 pub struct Pomodoro<'a> {
+    pub current_state: PomodoroStates,
     pub finished_pomodoros: u32,
+    pub next_state: PomodoroStates,
+    pub state_observers: Vec<&'a dyn Observer>,
+    long_break_time_in_secs: u64,
     no_of_breaks: u8,
+    pom_sender: Option<Sender<PomodoroChannel>>,
     pomodoro_time_in_secs: u64,
     short_break_time_in_secs: u64,
-    long_break_time_in_secs: u64,
-    pub next_state: PomodoroStates,
-    pub current_state: PomodoroStates,
-    pub state_observers: Vec<&'a dyn Observer>,
     ui_receiver: Option<Receiver<UIChannel>>,
-    pom_sender: Option<Sender<PomodoroChannel>>,
 }
 
 impl<'a> Pomodoro<'a> {
@@ -53,15 +52,13 @@ impl<'a> Pomodoro<'a> {
     }
 
     pub fn listen_loop(&mut self) {
-        match self.ui_receiver.as_ref() {
-            Some(channel) => match channel.recv() {
-                Ok(message) => match message {
+        if let Some(channel) = self.ui_receiver.as_ref() {
+            if let Ok(message) = channel.recv() {
+                match message {
                     UIChannel::Proceed => self.run_pom_cycle(),
                     UIChannel::Cancel => (),
-                },
-                Err(_) => (),
-            },
-            None => (),
+                }
+            }
         }
     }
 
@@ -80,7 +77,7 @@ impl<'a> Pomodoro<'a> {
             PomodoroStates::ShortBreak => {
                 self.next_state = PomodoroStates::Pomodoro;
                 self.current_state = PomodoroStates::ShortBreak;
-                self.no_of_breaks = self.no_of_breaks + 1;
+                self.no_of_breaks += 1;
                 self.wait_for_seconds(self.short_break_time_in_secs);
             }
             PomodoroStates::LongBreak => {
@@ -91,15 +88,15 @@ impl<'a> Pomodoro<'a> {
             }
         }
         self.notify();
-        match self.pom_sender.as_ref() {
-            Some(channel) => {
-                channel.send(PomodoroChannel::Completed(
-                    self.next_state.clone(),
-                    self.finished_pomodoros,
-                ));
-                self.listen_loop();
+        if let Some(channel) = self.pom_sender.as_ref() {
+            let res = channel.send(PomodoroChannel::Completed(
+                self.next_state.clone(),
+                self.finished_pomodoros,
+            ));
+            if let Err(e) = res {
+                panic!("Some error between threads {}", e);
             }
-            None => (),
+            self.listen_loop();
         }
     }
 
@@ -115,11 +112,10 @@ impl<'a> Pomodoro<'a> {
     }
 
     fn send_update(&self, remaining_secs: u64) {
-        match self.pom_sender.as_ref() {
-            Some(channel) => {
-                channel.send(PomodoroChannel::Update(remaining_secs));
-            }
-            None => (),
+        if let Some(channel) = self.pom_sender.as_ref() {
+            channel
+                .send(PomodoroChannel::Update(remaining_secs))
+                .unwrap();
         }
     }
 
@@ -153,9 +149,10 @@ mod tests {
     extern crate simulacrum;
     use crate::communication::*;
     use crate::observers::Observer;
-    use crate::pomodoro::*;
+    use crate::pomodoro_core::*;
     #[macro_use]
     use simulacrum::*;
+    use crate::pomodoro_core::pomodorostates::PomodoroStates;
     use std::sync::mpsc::channel;
     use std::thread;
     use std::time::Duration;
@@ -189,16 +186,24 @@ mod tests {
         let mut pom = Pomodoro::new(pom_config);
         let (sender, receiver) = channel();
         pom.register_receiver(receiver);
-        pom.chan_sender();
-        thread::spawn(move || {
-            let no_of_proceedings_till_long_break = 7;
-            for _ in 0..no_of_proceedings_till_long_break {
-                thread::sleep(Duration::from_micros(10));
-                sender.send(UIChannel::Proceed);
+        let pom_receiver = pom.chan_sender();
+        let handle = thread::spawn(move || {
+            sender.send(UIChannel::Proceed);
+            let mut next_pom_state = PomodoroStates::Pomodoro;
+            while next_pom_state != PomodoroStates::LongBreak {
+                if let Ok(message) = pom_receiver.recv() {
+                    if let PomodoroChannel::Completed(next_state, finished_pomodoros) = message {
+                        next_pom_state = next_state;
+                        sender.send(UIChannel::Proceed);
+                    }
+                }
+            }
+            if let Ok(message) = pom_receiver.recv() {
+                sender.send(UIChannel::Cancel);
             }
         });
         pom.listen_loop();
-        assert_eq!(pom.next_state, PomodoroStates::LongBreak);
+        handle.join().unwrap();
         assert_eq!(pom.finished_pomodoros, 4);
     }
 

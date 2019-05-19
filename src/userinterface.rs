@@ -1,13 +1,9 @@
 use crate::communication::*;
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::PomodoroStates;
 use crate::ui::Output;
 use crate::uimessages::UIMessages;
-use crossterm::{terminal, ClearType, Color, Colored, Terminal};
-use std::io::{stdin, stdout, Write};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
 
 pub struct UserInterface {
     ui_sender: Option<Sender<UIChannel>>,
@@ -44,12 +40,8 @@ impl UserInterface {
             ));
         }
         self.wait_for_user_input();
-        match self.ui_sender.as_ref() {
-            Some(channel) => match channel.send(UIChannel::Proceed) {
-                Ok(_) => (),
-                Err(_) => (),
-            },
-            None => (),
+        if let Some(channel) = self.ui_sender.as_ref() {
+            channel.send(UIChannel::Proceed).unwrap();
         }
         self.listening_loop();
     }
@@ -74,21 +66,19 @@ impl UserInterface {
     }
 
     fn remaining_minutes(&self, remaining_secs: u64) -> u64 {
-        (remaining_secs as f64 / 60 as f64).ceil() as u64
+        (remaining_secs as f64 / f64::from(60)).ceil() as u64
     }
 
     fn listening_loop(&mut self) {
-        match self.pom_receiver.as_ref() {
-            Some(channel) => match channel.recv() {
-                Ok(message) => match message {
+        if let Some(channel) = self.pom_receiver.as_ref() {
+            if let Ok(message) = channel.recv() {
+                match message {
                     PomodoroChannel::Update(remaining_secs) => self.play_animation(remaining_secs),
                     PomodoroChannel::Completed(next_state, finished_pomodoros) => {
                         self.ask_for_ack(next_state, finished_pomodoros)
                     }
-                },
-                Err(_) => (),
-            },
-            None => (),
+                }
+            }
         }
     }
 

@@ -1,8 +1,8 @@
 use std::error::Error;
 
 pub trait RecordFile: Send {
-    fn open_or_create_with_headers(&self, headers: &Vec<String>);
-    fn write_headers(&self, headers: &Vec<String>) -> Result<(), Box<Error>>;
+    fn open_or_create_with_headers(&self, headers: &[String]);
+    fn write_headers(&self, headers: &[String]) -> Result<(), Box<Error>>;
     fn write_record_to_new_line(&self, record: Vec<String>) -> Result<(), Box<Error>>;
     fn overwrite_record_in_pos_with(
         &self,

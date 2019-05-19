@@ -1,6 +1,6 @@
 use crate::files::RecordFile;
 use crate::observers::Observer;
-use crate::pomodoro::PomodoroStates;
+use crate::pomodoro_core::PomodoroStates;
 use chrono::prelude::*;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
@@ -8,20 +8,16 @@ use std::thread;
 
 pub struct Record {
     record_file: Arc<Mutex<dyn RecordFile>>,
-    current_date: String,
 }
 
 impl Record {
     pub fn new(record_file: Arc<Mutex<dyn RecordFile>>) -> Record {
-        Record {
-            record_file,
-            current_date: Utc::now().format("%Y-%m-%d").to_string(),
-        }
+        Record { record_file }
     }
 
     pub fn initialize(&self) {
         let headers =
-            self.construct_content_vec(&"Date".to_string(), &"Number of pomodoros".to_string());
+            self.construct_content_vec("Date".to_string(), "Number of pomodoros".to_string());
         self.record_file
             .lock()
             .unwrap()
@@ -32,7 +28,7 @@ impl Record {
         let locked_file = self.record_file.lock().unwrap();
         match locked_file.get_last_pomodoro_date_and_line_no() {
             Some((last_date, _line_no)) => {
-                if last_date == self.current_date {
+                if last_date == self.get_current_date() {
                     locked_file.get_last_pomodoro_count()
                 } else {
                     None
@@ -51,7 +47,7 @@ impl Record {
 
     fn write_record(&self, finished_pomodoros: u32) -> Result<(), Box<Error>> {
         let content_vec =
-            self.construct_content_vec(&self.current_date, &finished_pomodoros.to_string());
+            self.construct_content_vec(self.get_current_date(), finished_pomodoros.to_string());
         match self
             .record_file
             .lock()
@@ -60,7 +56,7 @@ impl Record {
         {
             Some((last_date, line_pos)) => {
                 let record_file: Arc<Mutex<RecordFile>> = self.record_file.clone();
-                if last_date == self.current_date {
+                if last_date == self.get_current_date() {
                     thread::spawn(move || {
                         record_file
                             .lock()
@@ -92,11 +88,15 @@ impl Record {
         Ok(())
     }
 
-    fn construct_content_vec(&self, first_str: &String, sec_str: &String) -> Vec<String> {
+    fn construct_content_vec(&self, first_str: String, sec_str: String) -> Vec<String> {
         let mut vec = Vec::new();
         vec.push(first_str.clone());
         vec.push(sec_str.clone());
-        return vec;
+        vec
+    }
+
+    fn get_current_date(&self) -> String {
+        Utc::now().format("%Y-%m-%d").to_string()
     }
 }
 
