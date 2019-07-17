@@ -16,9 +16,9 @@ fn main() {
         long_break_time_in_mins: 15 as f32,
     };
     let filename_and_location: (String, String) = get_record_name_and_collection("rp-config.yml");
-    println!("{} {}", filename_and_location.0, filename_and_location.1);
     let record = Record::new(Arc::new(Mutex::new(CsvFile::new(
-        "pom-record.csv".to_string(),
+        filename_and_location.0,
+        filename_and_location.1,
     ))));
     record.initialize();
     let mut pomodoro: Pomodoro;
@@ -60,8 +60,8 @@ fn get_record_name_and_collection(config_filename: &str) -> (String, String) {
                 Some(loc) => location = loc,
                 None => location = default_location,
             }
-            return (filename.to_string(), location.to_string())
+            return (location.to_string(), filename.to_string())
         },
-        Err(E) => return (default_filename.to_string(), default_location.to_string())
+        Err(E) => return (default_location.to_string(), default_filename.to_string())
     }
 }
