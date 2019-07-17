@@ -5,6 +5,7 @@ use rusty_pomodoro::pomodoro_core::PomodoroConfig;
 use rusty_pomodoro::record::Record;
 use rusty_pomodoro::ui::*;
 use rusty_pomodoro::userinterface::UserInterface;
+use rusty_pomodoro::config::YamlConfig;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -14,6 +15,8 @@ fn main() {
         short_break_time_in_mins: 5 as f32,
         long_break_time_in_mins: 15 as f32,
     };
+    let filename_and_location: (String, String) = get_record_name_and_collection("rp-config.yml");
+    println!("{} {}", filename_and_location.0, filename_and_location.1);
     let record = Record::new(Arc::new(Mutex::new(CsvFile::new(
         "pom-record.csv".to_string(),
     ))));
@@ -36,7 +39,29 @@ fn main() {
     ui.register_receiver(pom_receiver);
     pomodoro.register_receiver(cli_receiver);
     thread::spawn(move || {
-        ui.start(no_of_finished_pomodoros);
+        // ui.start(no_of_finished_pomodoros);
     });
     pomodoro.listen_loop();
+}
+
+fn get_record_name_and_collection(config_filename: &str) -> (String, String) {
+    let default_filename = "pom-record";
+    let default_location = "./";
+    let mut config = YamlConfig::new(config_filename);
+    match config.parse() {
+        Ok(()) => {
+            let mut filename: &str;
+            let mut location: &str;
+            match config.record_filename() {
+                Some(name) => filename = name,
+                None => filename = default_filename,
+            }
+            match config.record_location() {
+                Some(loc) => location = loc,
+                None => location = default_location,
+            }
+            return (filename.to_string(), location.to_string())
+        },
+        Err(E) => return (default_filename.to_string(), default_location.to_string())
+    }
 }
