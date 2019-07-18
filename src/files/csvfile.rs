@@ -8,9 +8,9 @@ pub struct CsvFile {
 }
 
 impl CsvFile {
-    pub fn new(filename: String) -> CsvFile {
+    pub fn new(filepath: String, filename: String) -> CsvFile {
         CsvFile {
-            filename: filename.to_string(),
+            filename: filepath.to_string() + "/" + &filename + ".csv",
         }
     }
 
@@ -144,7 +144,9 @@ mod tests {
     use std::thread;
     use std::time::Duration;
 
-    static FILENAME: &str = "./temp/record.csv";
+    static FILEPATH: &str = "./temp";
+    static FILENAME: &str = "record";
+    static FILEPATH_AND_NAME_WITH_SUFFIX: &str = "./temp/record.csv";
 
     fn setup() {
         DirBuilder::new().create("./temp").unwrap();
@@ -156,7 +158,7 @@ mod tests {
     }
 
     fn get_last_entry_and_line_no() -> Option<(String, u8)> {
-        let file = File::open(FILENAME);
+        let file = File::open(FILEPATH_AND_NAME_WITH_SUFFIX);
         match file {
             Ok(file) => {
                 let mut line_position: u8 = 0;
@@ -188,10 +190,10 @@ mod tests {
     #[serial]
     fn creates_a_file_if_none_exists() {
         setup();
-        let file = CsvFile::new(FILENAME.to_string());
+        let file = CsvFile::new(FILEPATH.to_string(), FILENAME.to_string());
         let headers = header_vec();
         file.open_or_create_with_headers(&headers);
-        let raw_file = File::open(FILENAME);
+        let raw_file = File::open(FILEPATH_AND_NAME_WITH_SUFFIX);
         assert!(raw_file.is_ok());
         clean_up();
     }
@@ -200,7 +202,7 @@ mod tests {
     #[serial]
     fn creating_headers() {
         setup();
-        let file = CsvFile::new(FILENAME.to_string());
+        let file = CsvFile::new(FILEPATH.to_string(), FILENAME.to_string());
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         match get_last_entry_and_line_no() {
@@ -220,7 +222,7 @@ mod tests {
     #[serial]
     fn appending_lines() {
         setup();
-        let file = CsvFile::new(FILENAME.to_string());
+        let file = CsvFile::new(FILEPATH.to_string(), FILENAME.to_string());
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let content = content_vec("2019-01-01", "1");
@@ -243,7 +245,7 @@ mod tests {
     #[serial]
     fn overwrite_last_line() {
         setup();
-        let file = CsvFile::new(FILENAME.to_string());
+        let file = CsvFile::new(FILEPATH.to_string(), FILENAME.to_string());
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let mut content = content_vec("2019-01-01", "1");
@@ -270,7 +272,7 @@ mod tests {
     #[serial]
     fn get_last_pom_count() {
         setup();
-        let file = CsvFile::new(FILENAME.to_string());
+        let file = CsvFile::new(FILEPATH.to_string(), FILENAME.to_string());
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let mut content = content_vec("2019-01-01", "1");
@@ -296,7 +298,7 @@ mod tests {
     #[serial]
     fn test_get_last_pomodoro_date_and_line_no() {
         setup();
-        let file = CsvFile::new(FILENAME.to_string());
+        let file = CsvFile::new(FILEPATH.to_string(), FILENAME.to_string());
         let headers = header_vec();
         file.write_headers(&headers).expect("Something went wrong");
         let mut content = content_vec("2019-01-01", "1");

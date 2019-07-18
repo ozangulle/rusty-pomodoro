@@ -126,7 +126,7 @@ impl<'a> Pomodoro<'a> {
     }
 
     fn convert_minutes_to_seconds(minutes: f32) -> u64 {
-        (minutes * (60 as f32)) as u64
+        (minutes * (60_f32)) as u64
     }
 }
 

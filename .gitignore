@@ -3,3 +3,4 @@
 **/*.rs.bk
 pom-record.csv
 *.tar.gz
+rp-config.yml

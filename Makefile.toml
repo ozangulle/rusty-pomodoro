@@ -1,0 +1,11 @@
+[tasks.formatting]
+command = "cargo"
+args = ["fmt", "--all", "--", "--check"]
+
+[tasks.quality]
+command = "cargo"
+args = ["clippy"]
+
+[tasks.release]
+command = "cargo"
+args = ["build", "--release"]
