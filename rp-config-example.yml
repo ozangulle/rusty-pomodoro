@@ -1,0 +1,7 @@
+# Example rp-config.yml file.
+# Delete the "-example" part from the filename.
+
+# Default name for the file name
+record_name: "pom-record"
+# Default path
+record_location: "."
