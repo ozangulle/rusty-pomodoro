@@ -20,6 +20,8 @@ before_install:
   - rustup self update
   - rustup target add $TARGET
   - cargo install cargo-make
+  - rustup component add rustfmt --toolchain stable-x86_64-unknown-linux-gnu
+  - rustup component add clippy --toolchain stable-x86_64-unknown-linux-gnu
   - cargo test
   - cargo make formatting
   - cargo make quality

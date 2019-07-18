@@ -1,19 +1,19 @@
 use rusty_pomodoro::communication::*;
+use rusty_pomodoro::config::YamlConfig;
 use rusty_pomodoro::files::*;
 use rusty_pomodoro::pomodoro_core::Pomodoro;
 use rusty_pomodoro::pomodoro_core::PomodoroConfig;
 use rusty_pomodoro::record::Record;
 use rusty_pomodoro::ui::*;
 use rusty_pomodoro::userinterface::UserInterface;
-use rusty_pomodoro::config::YamlConfig;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
     let config = PomodoroConfig {
-        pomodoro_time_in_mins: 25 as f32,
-        short_break_time_in_mins: 5 as f32,
-        long_break_time_in_mins: 15 as f32,
+        pomodoro_time_in_mins: 25_f32,
+        short_break_time_in_mins: 5_f32,
+        long_break_time_in_mins: 15_f32,
     };
     let filename_and_location: (String, String) = get_record_name_and_collection("rp-config.yml");
     let record = Record::new(Arc::new(Mutex::new(CsvFile::new(
@@ -39,7 +39,7 @@ fn main() {
     ui.register_receiver(pom_receiver);
     pomodoro.register_receiver(cli_receiver);
     thread::spawn(move || {
-        // ui.start(no_of_finished_pomodoros);
+        ui.start(no_of_finished_pomodoros);
     });
     pomodoro.listen_loop();
 }
@@ -50,8 +50,8 @@ fn get_record_name_and_collection(config_filename: &str) -> (String, String) {
     let mut config = YamlConfig::new(config_filename);
     match config.parse() {
         Ok(()) => {
-            let mut filename: &str;
-            let mut location: &str;
+            let filename: &str;
+            let location: &str;
             match config.record_filename() {
                 Some(name) => filename = name,
                 None => filename = default_filename,
@@ -60,8 +60,8 @@ fn get_record_name_and_collection(config_filename: &str) -> (String, String) {
                 Some(loc) => location = loc,
                 None => location = default_location,
             }
-            return (location.to_string(), filename.to_string())
-        },
-        Err(E) => return (default_location.to_string(), default_filename.to_string())
+            (location.to_string(), filename.to_string())
+        }
+        Err(_) => (default_location.to_string(), default_filename.to_string()),
     }
 }

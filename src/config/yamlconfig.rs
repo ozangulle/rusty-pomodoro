@@ -3,7 +3,6 @@ use std::error::Error;
 
 pub struct YamlConfig<'a> {
     file_name: &'a str,
-    #[derive(Debug, Deserialize)]
     config_values: BTreeMap<String, String>,
 }
 
