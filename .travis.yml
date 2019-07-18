@@ -19,7 +19,10 @@ before_install:
   - set -e
   - rustup self update
   - rustup target add $TARGET
+  - cargo install cargo-make
   - cargo test
+  - cargo make formatting
+  - cargo make quality
 
 cache: cargo
 
