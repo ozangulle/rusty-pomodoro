@@ -48,16 +48,16 @@ notifications:
   email:
     on_success: never
 
-before_deploy:
-    - mv target/release/rusty-pomodoro target/release/rusty-pomodoro-${TRAVIS_TAG}-${TRAVIS_OS_NAME}
+# before_deploy:
+    # - mv target/release/rusty-pomodoro target/release/rusty-pomodoro-${TRAVIS_TAG}-${TRAVIS_OS_NAME}
 
 deploy:
   provider: releases
   api_key:
     secure: lxFdINtU6gm2TMCdwpEbZJ4qZkqCr2O/FlVPVO1ue+M5pcr5G4shtiQk75jPFE6cEj+8dtRmTBtTOZFo0VwnjbU7e+aOBQ6QbYr/x9NOA+OBUxZo+Zq4cQEEDuyHcfPFRgnPIkC154oBN0doz/yOE3ALgb5EMbGVFdAZkNwJPDuQNr+CUhAUH342mBBtKH1XkVB/IJOyl4Z3fVi02wHKaq0NaNwwe9w8G8NCbioaoF2HUGl7KrcBxyeoOJ+4ymutejc+INKF0rElEP8XPSQTVPtT5+dLlJBxS+xmIm9fC6IHEqTb5MrZAKZH3qVWGjxEk88pS+F6mUPaFEZYDehJkWz9+Sk9XvViXq4CcogmYJhaaANcCi8KgtPsnB+yVqatstA1kchJFSxgO+r3X1wRYl2SMbVQx15Nr2wdrojfA4WzyU6dwKOaCX+pGDK25EFq1L3ljNILo7+zdit31TTX1Fn27aStbShy2XWf63V8W7ddjk8eQM2EECfET3bPRM6E0eyeeG4lNwl2mi60DqzRS3Aan5MTfvtrPSE41NJxg6U2S1x5e2lz75EXBGyGxENPi9OyQhDtecIUO7EXswav1LUwfDfJi9yArJm58PFp3ZDlv+ajD1+ry4qcWfl0zZ49MTG6M2sjIPSw2gdDUdyo6GCekABn+xzWj5rw1Fse960=
-  # file_glob: true
+  file_glob: true
   file:
-    - target/release/rusty-pomodoro-*
+    - target/release/rusty-pomodoro
   on:
     # condition: $DEPLOY = 1
     tags: true
