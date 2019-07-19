@@ -13,7 +13,6 @@ env:
   global:
     - CARGO_MAKE_RUN_CODECOV="true"
 
-
 matrix:
   include:
     - env:
@@ -29,7 +28,6 @@ before_install:
   - which cargo-make || cargo install cargo-make
   - rustup component add rustfmt --toolchain stable-x86_64-unknown-linux-gnu
   - rustup component add clippy --toolchain stable-x86_64-unknown-linux-gnu
-#  - cargo make kcov-install-debian
 
 cache: cargo
 
@@ -48,3 +46,15 @@ before_cache:
 notifications:
   email:
     on_success: never
+
+deploy:
+  provider: releases
+  api_key:
+    secure: $GHKEY
+  file_glob: true
+  file: "*.zip"
+  on:
+    # condition: $DEPLOY = 1
+    tags: true
+  skip_cleanup: true
+  overwrite: true

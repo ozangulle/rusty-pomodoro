@@ -1,4 +1,6 @@
-# Rusty Pomodoro [![Build Status](https://travis-ci.org/ozangulle/rusty-pomodoro.svg?branch=master)](https://travis-ci.org/ozangulle/rusty-pomodoro)
+# Rusty Pomodoro [![Build Status](https://travis-ci.org/ozangulle/rusty-pomodoro.svg?branch=master)](https://travis-ci.org/ozangulle/rusty-pomodoro) [![codecov](https://codecov.io/gh/ozangulle/rusty-pomodoro/branch/master/graph/badge.svg)](https://codecov.io/gh/ozangulle/rusty-pomodoro)
+
+
 
 ## Why another pomodoro app
 
