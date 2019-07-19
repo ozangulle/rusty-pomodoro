@@ -24,6 +24,10 @@ jobs:
     - stage: test and build
       env:
         - RUSTFLAGS='-C link-dead-code'
+        - NAME=rusty-pomodoro
+        - TARGET=x86_64-pc-windows-msvc
+        - PACKAGE=${NAME}-${TARGET}.tar.gz
+        os: linux
       script: cargo test --all
       after_success:
         - |
@@ -40,14 +44,6 @@ jobs:
           for crate in WORKSPACE_MEMBERS lib; do for file in target/debug/$crate-*[^\.d]; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done; done &&
           bash <(curl -s https://codecov.io/bash) &&
           echo "Uploaded code coverage"
-
-matrix:
-  include:
-    - env:
-      - NAME=rusty-pomodoro 
-      - TARGET=x86_64-pc-windows-msvc
-      - PACKAGE=${NAME}-${TARGET}.tar.gz
-      os: linux
 
 before_install:
   - set -e
