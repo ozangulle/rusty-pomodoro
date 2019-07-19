@@ -26,14 +26,16 @@ before_install:
   - rustup component add rustfmt --toolchain stable-x86_64-unknown-linux-gnu
   - rustup component add clippy --toolchain stable-x86_64-unknown-linux-gnu
 #  - cargo make kcov-install-debian
+
+cache: cargo
+
+before_script:
   - cargo test
   - cargo make formatting
   - cargo make quality
 
-cache: cargo
-
 script:
-  - cargo run --bin cargo-make --target-dir target/ci -- make ci-flow
+  - cargo make ci-flow
 
 before_cache:
   # Travis can't cache files that are not readable by "others"
