@@ -8,7 +8,11 @@ global:
   - CRATE_NAME=rusty-pomodoro
   - RUST_BACKTRACE=1
   - RUSTFLAGS="-C link-dead-code"
-  - CARGO_MAKE_RUN_CODECOV="true"
+
+env:
+  global:
+    - CARGO_MAKE_RUN_CODECOV="true"
+
 
 matrix:
   include:
