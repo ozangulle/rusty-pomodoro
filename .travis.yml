@@ -1,11 +1,46 @@
-os:
-- linux
+sudo: true
+dist: trusty
 language: rust
 rust:
   - stable
 
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - cmake
+      - gcc
+      - binutils-dev
+      - zlib1g-dev
+      - libiberty-dev
+
 global:
   - CRATE_NAME=rusty-pomodoro
+
+jobs:
+  include:
+    - stage: test and build
+      env:
+        - RUSTFLAGS='-C link-dead-code'
+      script: cargo test --all
+      after_success:
+        - |
+          wget https://github.com/ogulle/rusty-pomodoro/archive/master.tar.gz &&
+          tar xzf master.tar.gz &&
+          cd kcov-master &&
+          mkdir build &&
+          cd build &&
+          cmake .. &&
+          make &&
+          sudo make install &&
+          cd ../.. &&
+          rm -rf kcov-master &&
+          for crate in WORKSPACE_MEMBERS lib; do for file in target/debug/$crate-*[^\.d]; do mkdir -p "target/cov/$(basename $file)"; kcov
+  --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done; done &&
+  bash <(curl -s https://codecov.io/bash) &&
+  echo "Uploaded code coverage"
 
 matrix:
   include:
@@ -31,6 +66,21 @@ cache: cargo
 before_cache:
   # Travis can't cache files that are not readable by "others"
   - chmod -R a+r $HOME/.cargo
+
+after_success: |
+  wget https://github.com/ozangulle/rusty-pomodoro &&
+  tar xzf master.tar.gz &&
+  cd kcov-master &&
+  mkdir build &&
+  cd build &&
+  cmake .. &&
+  make &&
+  make install DESTDIR=../../kcov-build &&
+  cd ../.. &&
+  rm -rf kcov-master &&
+  for file in target/debug/examplerust-*; do [ -x "${file}" ] || continue; mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
+  bash <(curl -s https://codecov.io/bash) &&
+  echo "Uploaded code coverage"
 
 notifications:
   email:
