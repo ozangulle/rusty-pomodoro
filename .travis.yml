@@ -37,6 +37,7 @@ before_script:
   - cargo make quality
 
 script:
+  - cargo make release
   - cargo make ci-flow
 
 before_cache:
