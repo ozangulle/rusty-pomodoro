@@ -49,7 +49,7 @@ notifications:
     on_success: never
 
 before_deploy:
-    - mv target/release/rusty-pomodoro "target/release/rusty-pomodoro-$TRAVIS_TAG-$TRAVIS_OS_NAME"
+    - mv target/release/rusty-pomodoro target/release/rusty-pomodoro-${TRAVIS_TAG}-${TRAVIS_OS_NAME}
 
 deploy:
   provider: releases
