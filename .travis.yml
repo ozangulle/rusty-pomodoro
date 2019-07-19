@@ -27,7 +27,7 @@ jobs:
         - NAME=rusty-pomodoro
         - TARGET=x86_64-pc-windows-msvc
         - PACKAGE=${NAME}-${TARGET}.tar.gz
-        os: linux
+        # os: linux
       script: cargo test --all
       after_success:
         - |
