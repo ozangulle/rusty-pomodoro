@@ -15,11 +15,27 @@ env:
 
 matrix:
   include:
-    - env:
-      - NAME=rusty-pomodoro
-      - TARGET=x86_64-pc-windows-msvc
-      - PACKAGE=${NAME}-${TARGET}.tar.gz
+    - rust: stable
       os: linux
+    - rust: stable
+      os: osx
+    - rust: stable
+      os: windows
+    - env: DEPLOY=1
+      os: osx
+      script:
+        - cargo make ci-flow
+        - cargo make release --env TARGET=x86_64-apple-darwin
+    - env: DEPLOY=1
+      os: windows
+      script:
+        - cargo make ci-flow
+        - cargo make release --env TARGET=x86_64-pc-windows-msvc
+    - env: DEPLOY=1
+      os: linux
+      script:
+        - cargo make ci-flow
+        - cargo make release --env TARGET=x86_64-unknown-linux-musl
 
 before_install:
   - set -e
@@ -37,8 +53,8 @@ before_script:
   - cargo make quality
 
 script:
-  - cargo make release
   - cargo make ci-flow
+  - cargo make release
 
 before_cache:
   # Travis can't cache files that are not readable by "others"
@@ -59,7 +75,7 @@ deploy:
   file:
     - target/release/rusty-pomodoro-*
   on:
-    # condition: $DEPLOY = 1
+    condition: $DEPLOY = 1
     tags: true
   skip_cleanup: true
   overwrite: true
