@@ -1,3 +1,5 @@
+language: rust
+
 global:
   - CRATE_NAME=rusty-pomodoro
   - RUST_BACKTRACE=1
