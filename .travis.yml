@@ -32,7 +32,6 @@ before_install:
 cache: cargo
 
 before_script:
-  - cargo test
   - cargo make formatting
   - cargo make quality
 
