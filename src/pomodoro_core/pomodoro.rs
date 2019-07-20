@@ -267,7 +267,8 @@ mod tests {
         let pom_receiver = pom.chan_sender();
         let mut actual_results: Vec<(u64)> = vec![];
         let handle = thread::spawn(move || {
-            thread::sleep(Duration::from_micros(10));
+            // Decreasing this number may cause travis windows tests to fail
+            thread::sleep(Duration::from_micros(30));
             sender.send(UIChannel::Proceed);
             for _ in 0..3 {
                 match pom_receiver.recv().unwrap() {
