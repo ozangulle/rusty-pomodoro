@@ -1,8 +1,4 @@
-os:
-- linux
 language: rust
-rust:
-  - stable
 
 global:
   - CRATE_NAME=rusty-pomodoro
@@ -15,35 +11,26 @@ env:
 
 matrix:
   include:
-    - rust: stable
-      os: linux
-    - rust: stable
-      os: osx
-    - rust: stable
-      os: windows
-    - env: DEPLOY=1
-      os: osx
-      script:
-        - cargo make ci-flow
-        - cargo make release --env TARGET=x86_64-apple-darwin
-    - env: DEPLOY=1
-      os: windows
-      script:
-        - cargo make ci-flow
-        - cargo make release --env TARGET=x86_64-pc-windows-msvc
-    - env: DEPLOY=1
-      os: linux
-      script:
-        - cargo make ci-flow
-        - cargo make release --env TARGET=x86_64-unknown-linux-musl
+  - rust: stable
+    os: linux
+  - rust: stable
+    os: osx
+  - rust: stable
+    os: windows
+  - os: osx
+    env: TARGET=x86_64-apple-darwin
+  - os: windows
+    env: TARGET=x86_64-pc-windows-msvc
+  - os: linux
+    env: TARGET=x86_64-unknown-linux-gnu
 
 before_install:
   - set -e
   - rustup self update
   - rustup target add $TARGET
   - which cargo-make || cargo install cargo-make
-  - rustup component add rustfmt --toolchain stable-x86_64-unknown-linux-gnu
-  - rustup component add clippy --toolchain stable-x86_64-unknown-linux-gnu
+  - rustup component add rustfmt --toolchain stable-$TARGET
+  - rustup component add clippy --toolchain stable-$TARGET
 
 cache: cargo
 
