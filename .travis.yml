@@ -14,7 +14,7 @@ matrix:
   - os: osx
     rust: stable
     env: TARGET=x86_64-apple-darwin
-  - os: linux
+  - os: windows
     rust: stable
     env: TARGET=x86_64-pc-windows-msvc
   - os: linux
